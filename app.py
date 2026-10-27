@@ -3,13 +3,30 @@ import os
 
 from functools import wraps
 
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 
 from dotenv import load_dotenv
 from google import genai
+from prompts.recommend_prompt import (
+    SYSTEM_PROMPT as RECOMMEND_SYSTEM_PROMPT,
+    USER_PROMPT as RECOMMEND_USER_PROMPT
+)
 
+from prompts.feedback_prompt import (
+    SYSTEM_PROMPT as FEEDBACK_SYSTEM_PROMPT,
+    USER_PROMPT as FEEDBACK_USER_PROMPT
+)
 
-load_dotenv()
+from prompts.report_prompt import (
+    SYSTEM_PROMPT as REPORT_SYSTEM_PROMPT,
+    USER_PROMPT as REPORT_USER_PROMPT
+)
+
+from prompts.chat_prompt import SYSTEM_PROMPT as CHAT_SYSTEM_PROMPT
+
+import time
+
+load_dotenv(override=True)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -17,6 +34,45 @@ client = None
 
 if GEMINI_API_KEY:
     client = genai.Client(api_key=GEMINI_API_KEY)
+
+# Danh sách model ưu tiên: thử model hoạt động tốt nhất trước, nếu lỗi thì fallback
+GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"]
+
+def call_gemini(contents, system_instruction=None, max_retries=3):
+    """Gọi Gemini API với retry và fallback model tự động."""
+    if not client:
+        return None, "Chưa cấu hình GEMINI_API_KEY."
+    
+    from google.genai import types
+    
+    for model_name in GEMINI_MODELS:
+        for attempt in range(max_retries):
+            try:
+                config = None
+                if system_instruction:
+                    config = types.GenerateContentConfig(
+                        system_instruction=system_instruction
+                    )
+                
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=contents,
+                    config=config
+                )
+                return response.text, None  # Thành công
+            except Exception as e:
+                error_str = str(e)
+                print(f"[Gemini] Model={model_name}, Attempt={attempt+1}/{max_retries}, Error: {error_str}")
+                if "503" in error_str or "UNAVAILABLE" in error_str or "overloaded" in error_str:
+                    time.sleep(2 * (attempt + 1))  # Chờ 2s, 4s, 6s
+                    continue
+                elif "404" in error_str or "NOT_FOUND" in error_str:
+                    break  # Model không tồn tại, thử model tiếp theo
+                else:
+                    return None, f"Lỗi Gemini: {error_str}"
+        print(f"[Gemini] Đã thử hết {max_retries} lần với model {model_name}, chuyển sang model dự phòng...")
+    
+    return None, "Không thể kết nối Gemini AI sau nhiều lần thử. Vui lòng thử lại sau."
 
 
 app = Flask(__name__)
@@ -1076,46 +1132,18 @@ def ai_recommend():
                 "total_quantity": sale["total_quantity"]
             })
 
-        prompt = f"""
-Bạn là trợ lý AI quản lý căng tin trường học.
+        prompt = RECOMMEND_SYSTEM_PROMPT + "\n\n" + RECOMMEND_USER_PROMPT.format(
+            food_data=food_data,
+            ingredient_data=ingredient_data,
+            sales_data=sales_data
+        )
 
-Hãy phân tích dữ liệu căng tin dưới đây và đưa ra đề xuất thực đơn
-cho ngày tiếp theo.
-
-DANH SÁCH MÓN ĂN:
-{food_data}
-
-NGUYÊN LIỆU HIỆN CÓ:
-{ingredient_data}
-
-5 MÓN BÁN CHẠY:
-{sales_data}
-
-Yêu cầu:
-
-1. Chọn 3-5 món phù hợp để đưa vào thực đơn.
-2. Ưu tiên món bán chạy.
-3. Không ưu tiên món có nguyên liệu đang ở mức thấp.
-4. Giải thích ngắn gọn lý do lựa chọn.
-5. Đề xuất món cần hạn chế nếu nguyên liệu không đủ.
-6. Đưa ra cảnh báo nếu có nguyên liệu sắp hết.
-
-Trả lời bằng tiếng Việt, trình bày rõ ràng, dễ đọc.
-"""
-
-        try:
-
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
-
-            ai_text = response.text
-
-        except Exception as e:
-
+        result, error = call_gemini(prompt)
+        if result:
+            ai_text = result
+        else:
             ai_text = (
-                "Không thể kết nối Gemini AI lúc này. "
+                f"Không thể kết nối Gemini AI lúc này. {error} "
                 "Hệ thống vẫn sử dụng dữ liệu bán hàng để đưa ra đề xuất cơ bản."
             )
 
@@ -1225,39 +1253,16 @@ def ai_feedback():
                 "comment": feedback["comment"]
             })
 
-        prompt = f"""
-Bạn là AI trợ lý quản lý căng tin trường học.
+        prompt = FEEDBACK_SYSTEM_PROMPT + "\n\n" + FEEDBACK_USER_PROMPT.format(
+            feedback_data=feedback_data
+        )
 
-Hãy phân tích các phản hồi của khách hàng dưới đây:
-
-{feedback_data}
-
-Hãy trả lời bằng tiếng Việt và thực hiện:
-
-1. Đánh giá mức độ hài lòng chung.
-2. Xác định các món được đánh giá tốt.
-3. Xác định các món hoặc vấn đề nhận nhiều phản hồi chưa tốt.
-4. Tóm tắt những ý kiến khách hàng thường nhắc đến.
-5. Đề xuất 3 giải pháp cải thiện chất lượng phục vụ.
-6. Đưa ra kết luận ngắn gọn cho người quản lý.
-
-Không tự bịa dữ liệu.
-Chỉ sử dụng thông tin có trong dữ liệu được cung cấp.
-"""
-
-        try:
-
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
-
-            ai_text = response.text
-
-        except Exception:
-
+        result, error = call_gemini(prompt)
+        if result:
+            ai_text = result
+        else:
             ai_text = (
-                "Không thể kết nối Gemini AI. "
+                f"Không thể kết nối Gemini AI. {error} "
                 "Hệ thống vẫn hiển thị thống kê phản hồi cơ bản."
             )
 
@@ -1372,56 +1377,22 @@ def ai_report():
                 "quantity": item["quantity"]
             })
 
-        prompt = f"""
-Bạn là AI trợ lý phân tích doanh thu cho căng tin trường học.
+       
 
-Dữ liệu kinh doanh:
+        prompt = REPORT_SYSTEM_PROMPT + "\n\n" + REPORT_USER_PROMPT.format(
+            total_revenue=total_revenue,
+            total_quantity=total_quantity,
+            total_orders=total_orders,
+            best_selling=best_selling_data,
+            daily_revenue=daily_data
+        )
 
-TỔNG DOANH THU:
-{total_revenue:,.0f} VNĐ
-
-TỔNG SỐ PHẦN ĐÃ BÁN:
-{total_quantity}
-
-TỔNG SỐ GIAO DỊCH:
-{total_orders}
-
-5 MÓN BÁN CHẠY:
-{best_selling_data}
-
-DOANH THU 7 NGÀY GẦN NHẤT:
-{daily_data}
-
-Hãy tạo báo cáo doanh thu ngắn gọn bằng tiếng Việt.
-
-Yêu cầu:
-
-1. Nêu tổng doanh thu.
-2. Nêu tổng số lượng món đã bán.
-3. Nêu số giao dịch.
-4. Xác định món bán chạy nhất.
-5. Phân tích xu hướng doanh thu dựa trên dữ liệu.
-6. Đưa ra 3 đề xuất giúp tăng doanh thu.
-7. Nếu dữ liệu chưa đủ để kết luận xu hướng thì phải nói rõ.
-
-Không tự bịa dữ liệu.
-Chỉ sử dụng số liệu được cung cấp.
-Trình bày rõ ràng, dễ đọc.
-"""
-
-        try:
-
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
-
-            ai_text = response.text
-
-        except Exception:
-
+        result, error = call_gemini(prompt)
+        if result:
+            ai_text = result
+        else:
             ai_text = (
-                "Không thể kết nối Gemini AI lúc này. "
+                f"Không thể kết nối Gemini AI lúc này. {error}\n"
                 "Vui lòng kiểm tra GEMINI_API_KEY."
             )
 
@@ -1438,9 +1409,43 @@ Trình bày rõ ràng, dễ đọc.
         total_quantity=total_quantity,
         total_orders=total_orders,
         best_selling=best_selling, 
-        daily_revenue=daily_revenue,
         ai_text=ai_text
     )
+
+@app.route("/api/chat", methods=["POST"])
+@login_required
+def api_chat():
+    data = request.get_json()
+    if not data or "message" not in data:
+        return jsonify({"response": "Lỗi: Vui lòng nhập tin nhắn."}), 400
+    
+    user_message = data["message"].strip()
+    if not user_message:
+         return jsonify({"response": "Lỗi: Tin nhắn không được rỗng."}), 400
+
+    conn = get_db()
+    
+    food_count = conn.execute("SELECT COUNT(*) FROM foods").fetchone()[0]
+    ingredient_count = conn.execute("SELECT COUNT(*) FROM ingredients").fetchone()[0]
+    revenue = conn.execute("SELECT COALESCE(SUM(total), 0) FROM sales").fetchone()[0]
+    sale_count = conn.execute("SELECT COUNT(*) FROM sales").fetchone()[0]
+    
+    conn.close()
+
+    system_instruction = CHAT_SYSTEM_PROMPT.format(
+        food_count=food_count,
+        ingredient_count=ingredient_count,
+        revenue="{:,.0f}".format(revenue),
+        sale_count=sale_count
+    )
+    
+    result, error = call_gemini(user_message, system_instruction=system_instruction)
+    if result:
+        return jsonify({"response": result})
+    else:
+        return jsonify({"response": f"Xin lỗi, {error}"})
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)

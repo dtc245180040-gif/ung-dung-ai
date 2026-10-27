@@ -520,6 +520,195 @@
 
 </div>
 
-</body>
+<!-- AI CHAT WIDGET -->
+<div id="chat-widget" class="chat-widget">
+    <div id="chat-header" class="chat-header">
+        <span>🤖 Trợ lý Căng tin</span>
+        <button id="close-chat" class="chat-close-btn">&times;</button>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+        <div class="chat-message bot-message">Xin chào! Tôi là Trợ lý AI. Bạn cần tôi giúp gì về số liệu kinh doanh hôm nay?</div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="Nhập câu hỏi...">
+        <button id="send-chat" class="send-btn">Gửi</button>
+    </div>
+</div>
 
+<button id="chat-toggle-btn" class="chat-toggle-btn">
+    💬
+</button>
+
+<style>
+/* Chat Widget Styles */
+.chat-widget {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    height: 400px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.chat-header {
+    background: #7c3aed;
+    color: white;
+    padding: 12px 15px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f8fafc;
+}
+
+.chat-message {
+    max-width: 80%;
+    padding: 10px 12px;
+    border-radius: 15px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.bot-message {
+    background: #e2e8f0;
+    color: #1e293b;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+}
+
+.user-message {
+    background: #7c3aed;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+}
+
+.chat-input-area input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    outline: none;
+}
+
+.send-btn {
+    background: #7c3aed;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    margin-left: 8px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.chat-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background: #7c3aed;
+    color: white;
+    font-size: 24px;
+    border: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 1000;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chatWidget = document.getElementById('chat-widget');
+    const chatToggleBtn = document.getElementById('chat-toggle-btn');
+    const closeChatBtn = document.getElementById('close-chat');
+    const sendChatBtn = document.getElementById('send-chat');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Toggle widget
+    chatToggleBtn.addEventListener('click', () => {
+        chatWidget.style.display = chatWidget.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    closeChatBtn.addEventListener('click', () => {
+        chatWidget.style.display = 'none';
+    });
+
+    // Send message
+    const sendMessage = async () => {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // Add user message to UI
+        const userDiv = document.createElement('div');
+        userDiv.className = 'chat-message user-message';
+        userDiv.textContent = text;
+        chatMessages.appendChild(userDiv);
+        
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Add thinking indicator
+        const botDiv = document.createElement('div');
+        botDiv.className = 'chat-message bot-message';
+        botDiv.textContent = 'Đang phân tích...';
+        chatMessages.appendChild(botDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+            
+            // Format response (convert basic markdown to html if needed, or just set text)
+            botDiv.innerHTML = data.response.replace(/\n/g, '<br>');
+        } catch (e) {
+            botDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại sau.';
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    sendChatBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+});
+</script>
+
+</body>
 </html>
