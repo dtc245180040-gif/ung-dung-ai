@@ -3,58 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Smart Canteen</title>
-
+    <title>Đăng nhập - Smart Canteen AI</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-
 <body>
 
-    <div class="login-container">
-
-        <h1>SMART CANTEEN</h1>
-
-        <p>Hệ thống quản lý căng tin trường học tích hợp AI</p>
-
-        {% if error %}
-            <div class="error-message">
-                {{ error }}
+<div class="auth-wrapper">
+    <!-- LEFT PANEL: HERO SHOWCASE -->
+    <section class="auth-hero">
+        <div class="hero-header">
+            <div class="brand-badge">
+                <span class="pulse-dot"></span>
+                <span>SMART CANTEEN • GOOGLE GEMINI AI READY</span>
             </div>
-        {% endif %}
-
-        <form method="POST" action="/">
-
-            <label>Tên đăng nhập</label>
-
-            <input
-                type="text"
-                name="username"
-                placeholder="Nhập tên đăng nhập"
-                required
-            >
-
-            <label>Mật khẩu</label>
-
-            <input
-                type="password"
-                name="password"
-                placeholder="Nhập mật khẩu"
-                required
-            >
-
-            <button type="submit">
-                Đăng nhập
-            </button>
-
-        </form>
-
-        <div class="demo-account">
-            <p><strong>Tài khoản demo:</strong></p>
-            <p>Admin: <b>admin</b> / <b>123456</b></p>
-            <p>Nhân viên: <b>nhanvien</b> / <b>123456</b></p>
         </div>
 
-    </div>
+        <div class="hero-body">
+            <h1 class="hero-title">
+                Giải Pháp Quản Lý Căng Tin <br>
+                <span class="gradient-text">Tích Hợp Trí Tuệ Nhân Tạo</span>
+            </h1>
+            <p class="hero-desc">
+                Số hóa toàn diện nghiệp vụ bán hàng POS trừ kho tức thời, theo dõi định mức nguyên liệu tự động và cố vấn chiến lược kinh doanh thông minh cùng Google Gemini AI.
+            </p>
+
+            <div class="feature-cards-grid">
+                <div class="feature-glass-card">
+                    <div class="feature-icon-box">⚡</div>
+                    <div class="feature-content">
+                        <h4>Bán Hàng POS Trừ Kho Tức Thì</h4>
+                        <p>Tự động cập nhật số lượng tồn kho theo thời gian thực, ngăn chặn sai lệch và thất thoát.</p>
+                    </div>
+                </div>
+
+                <div class="feature-glass-card">
+                    <div class="feature-icon-box">🤖</div>
+                    <div class="feature-content">
+                        <h4>Trợ Lý Phân Tích Thông Minh</h4>
+                        <p>Đề xuất thực đơn hút khách, phân tích cảm xúc phản hồi và tư vấn tối ưu doanh thu.</p>
+                    </div>
+                </div>
+
+                <div class="feature-glass-card">
+                    <div class="feature-icon-box">📦</div>
+                    <div class="feature-content">
+                        <h4>Cảnh Báo Tồn Kho Định Mức</h4>
+                        <p>Tự động nhận diện nguyên liệu chạm ngưỡng tối thiểu để kịp thời nhập hàng trước ca bán.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-footer">
+            <div class="stat-item">
+                <h3>100%</h3>
+                <p>ACID Database SQLite</p>
+            </div>
+            <div class="stat-item">
+                <h3>Gemini 3.5</h3>
+                <p>Google GenAI Core</p>
+            </div>
+            <div class="stat-item">
+                <h3>RBAC</h3>
+                <p>Phân Quyền Admin & Staff</p>
+            </div>
+            <div class="stat-item">
+                <h3>20 / 20</h3>
+                <p>Pytest Unit Tests Đạt</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- RIGHT PANEL: LOGIN CARD -->
+    <section class="auth-panel">
+        <div class="login-card">
+            <div class="login-card-header">
+                <div class="logo-badge">🍱</div>
+                <h2>Đăng Nhập Hệ Thống</h2>
+                <p>Vui lòng nhập thông tin tài khoản để truy cập</p>
+            </div>
+
+            {% if error %}
+                <div class="error-message">
+                    <span>⚠️</span>
+                    <span>{{ error }}</span>
+                </div>
+            {% endif %}
+
+            <form method="POST" action="/" id="loginForm">
+                <div class="form-group">
+                    <label for="usernameInput">Tên đăng nhập</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input
+                            type="text"
+                            id="usernameInput"
+                            name="username"
+                            placeholder="Nhập tên đăng nhập (ví dụ: admin)"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="passwordInput">Mật khẩu</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input
+                            type="password"
+                            id="passwordInput"
+                            name="password"
+                            placeholder="Nhập mật khẩu"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="toggle-password-btn" onclick="togglePassword()" title="Hiển thị/ẩn mật khẩu">
+                            <span id="eyeIcon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <span>Đăng nhập vào hệ thống</span>
+                    <span>➔</span>
+                </button>
+            </form>
+
+            <!-- QUICK FILL DEMO ACCOUNTS -->
+            <div class="demo-section">
+                <div class="demo-title">⚡ Điền Nhanh Tài Khoản Demo</div>
+                <div class="demo-buttons-group">
+                    <button type="button" class="btn-demo-pill admin-pill" onclick="fillAccount('admin', '123456')">
+                        <span>👑</span>
+                        <span>Admin (admin)</span>
+                    </button>
+                    <button type="button" class="btn-demo-pill staff-pill" onclick="fillAccount('nhanvien', '123456')">
+                        <span>🧑‍🍳</span>
+                        <span>Nhân viên (staff)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="auth-card-footer">
+                <p>Hệ thống Quản lý Căng tin Trường học • Phiên bản 2.5</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    function fillAccount(username, password) {
+        const userInput = document.getElementById('usernameInput');
+        const passInput = document.getElementById('passwordInput');
+        
+        userInput.value = username;
+        passInput.value = password;
+        
+        // Focus and subtle highlight effect
+        userInput.style.borderColor = '#3b82f6';
+        passInput.style.borderColor = '#3b82f6';
+        setTimeout(() => {
+            userInput.style.borderColor = '';
+            passInput.style.borderColor = '';
+        }, 600);
+    }
+
+    function togglePassword() {
+        const passInput = document.getElementById('passwordInput');
+        const eyeIcon = document.getElementById('eyeIcon');
+        
+        if (passInput.type === 'password') {
+            passInput.type = 'text';
+            eyeIcon.textContent = '🙈';
+        } else {
+            passInput.type = 'password';
+            eyeIcon.textContent = '👁️';
+        }
+    }
+</script>
 
 </body>
 </html>
