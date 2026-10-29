@@ -1,540 +1,356 @@
 <!DOCTYPE html>
-
 <html lang="vi">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>Dashboard - Smart Canteen</title>
-
-<link
-    rel="stylesheet"
-    href="/static/css/dashboard.css"
->
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Canteen AI</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
-
 <body>
 
 <div class="layout">
 
-<!-- SIDEBAR -->
-
-<aside class="sidebar">
-
-    <div class="logo">
-
-        <h2>SMART</h2>
-
-        <span>CANTEEN</span>
-
-    </div>
-
-
-    <nav>
-
-        <a href="/dashboard" class="active">
-            📊 Dashboard
-        </a>
-
-        <a href="/foods">
-            🍜 Món ăn
-        </a>
-
-        <a href="/ingredients">
-            📦 Nguyên liệu
-        </a>
-
-        <a href="/suppliers">
-            🚚 Nhà cung cấp
-        </a>
-
-        <a href="/sales">
-            💰 Bán hàng
-        </a>
-
-        <a href="/feedback">
-            💬 Phản hồi
-        </a>
-
-        <a href="/reports">
-            📈 Báo cáo
-        </a>
-
-        <!-- AI ĐỀ XUẤT -->
-
-        <a href="/ai-recommend">
-            🤖 AI Đề xuất thực đơn
-        </a>
-
-        <!-- AI TỔNG HỢP PHẢN HỒI -->
-
-        <a href="/ai-feedback">
-            🧠 AI Tổng hợp phản hồi
-        </a>
-        <a href="/ai-report">
-            📊 AI Báo cáo doanh thu
-        </a>
-        <a href="/ai-chat">
-            💬 Trợ lý AI Căng tin
-        </a>
-
-    </nav>
-
-
-    <div class="logout">
-
-        <a href="/logout">
-            🚪 Đăng xuất
-        </a>
-
-    </div>
-
-</aside>
-
-
-
-<!-- MAIN -->
-
-<main class="main">
-
-
-    <!-- TOPBAR -->
-
-    <header class="topbar">
-
-        <div>
-
-            <h1>
-                Dashboard
-            </h1>
-
-            <p>
-                Tổng quan hoạt động căng tin
-            </p>
-
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>SMART</h2>
+            <span>CANTEEN</span>
+            <div class="ai-badge">AI Assistant</div>
         </div>
 
-
-        <div class="user">
-
-            👤 Quản trị viên
-
-        </div>
-
-    </header>
-
-
-
-    <!-- THỐNG KÊ -->
-
-    <section class="stats">
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                🍜
-            </div>
-
-            <div>
-
-                <p>
-                    Tổng món ăn
-                </p>
-
-                <h2>
-                    {{ food_count }}
-                </h2>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                📦
-            </div>
-
-            <div>
-
-                <p>
-                    Nguyên liệu
-                </p>
-
-                <h2>
-                    {{ ingredient_count }}
-                </h2>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                🚚
-            </div>
-
-            <div>
-
-                <p>
-                    Nhà cung cấp
-                </p>
-
-                <h2>
-                    {{ supplier_count }}
-                </h2>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                💰
-            </div>
-
-            <div>
-
-                <p>
-                    Doanh thu
-                </p>
-
-                <h2>
-                    {{ "{:,.0f}".format(revenue) }}đ
-                </h2>
-
-            </div>
-
-        </div>
-
-
-    </section>
-
-
-
-    <!-- NỘI DUNG -->
-
-    <section class="dashboard-grid">
-
-
-        <!-- MÓN BÁN CHẠY -->
-
-        <div class="panel">
-
-            <div class="panel-header">
-
-                <h2>
-                    🔥 Món bán chạy
-                </h2>
-
-                <a href="/sales">
-                    Xem bán hàng
-                </a>
-
-            </div>
-
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Món ăn
-                        </th>
-
-                        <th>
-                            Đã bán
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                {% for food in best_selling %}
-
-                    <tr>
-
-                        <td>
-                            🍜 {{ food["name"] }}
-                        </td>
-
-                        <td>
-                            {{ food["total_sold"] }}
-                        </td>
-
-                    </tr>
-
-                {% else %}
-
-                    <tr>
-
-                        <td colspan="2">
-                            Chưa có dữ liệu bán hàng
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-
-
-        <!-- NGUYÊN LIỆU SẮP HẾT -->
-
-        <div class="panel">
-
-            <div class="panel-header">
-
-                <h2>
-                    ⚠️ Nguyên liệu sắp hết
-                </h2>
-
-                <a href="/ingredients">
-                    Quản lý
-                </a>
-
-            </div>
-
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Nguyên liệu
-                        </th>
-
-                        <th>
-                            Còn lại
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                {% for ingredient in low_ingredients %}
-
-                    <tr>
-
-                        <td>
-                            📦 {{ ingredient["name"] }}
-                        </td>
-
-                        <td>
-
-                            <strong>
-                                {{ ingredient["quantity"] }}
-                                {{ ingredient["unit"] }}
-                            </strong>
-
-                        </td>
-
-                    </tr>
-
-                {% else %}
-
-                    <tr>
-
-                        <td colspan="2">
-                            ✓ Tất cả nguyên liệu đủ
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-
-    </section>
-
-
-
-    <!-- AI -->
-
-    <section class="panel ai-panel">
-
-        <div class="panel-header">
-
-            <div>
-
-                <h2>
-                    🤖 AI hỗ trợ quản lý
-                </h2>
-
-                <p>
-                    Phân tích doanh số và nguyên liệu để đề xuất thực đơn
-                </p>
-
-            </div>
-
+        <nav>
+            <a href="/dashboard" class="active">
+                📊 Dashboard
+            </a>
+            <a href="/foods">
+                🍜 Món ăn
+            </a>
+            <a href="/ingredients">
+                📦 Nguyên liệu
+            </a>
+            <a href="/suppliers">
+                🚚 Nhà cung cấp
+            </a>
+            <a href="/sales">
+                💰 Bán hàng
+            </a>
+            <a href="/feedback">
+                💬 Phản hồi
+            </a>
+            <a href="/reports">
+                📈 Báo cáo
+            </a>
             <a href="/ai-recommend">
-                Xem đề xuất →
+                🤖 AI Đề xuất thực đơn
             </a>
-
-        </div>
-
-
-        <div style="
-            padding: 25px;
-            background: linear-gradient(
-                135deg,
-                #f5f3ff,
-                #eff6ff
-            );
-            border-radius: 12px;
-        ">
-
-            <h3>
-                ✨ Đề xuất thực đơn bằng AI
-            </h3>
-
-            <p style="
-                margin-top: 8px;
-                color: #64748b;
-            ">
-                Hệ thống sử dụng dữ liệu món ăn, doanh số bán hàng
-                và tình trạng nguyên liệu để hỗ trợ quản lý lựa chọn
-                món ăn phù hợp.
-            </p>
-
-            <a
-                href="/ai-recommend"
-                style="
-                    display:inline-block;
-                    margin-top:15px;
-                    padding:12px 20px;
-                    background:#7c3aed;
-                    color:white;
-                    text-decoration:none;
-                    border-radius:8px;
-                    font-weight:bold;
-                "
-            >
-                🤖 Phân tích ngay
+            <a href="/ai-feedback">
+                🧠 AI Tổng hợp phản hồi
             </a>
+            <a href="/ai-report">
+                📊 AI Báo cáo doanh thu
+            </a>
+            <a href="/ai-chat">
+                💬 Trợ lý AI Căng tin
+            </a>
+        </nav>
 
+        <div class="logout">
+            <a href="/logout">
+                🚪 Đăng xuất
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Tổng quan vận hành căng tin & Trung tâm điều hành thông minh AI</p>
+            </div>
+
+            <div class="topbar-right">
+                <div class="system-status-pill">
+                    <span class="status-dot-live"></span>
+                    <span>Hệ thống: Trực tuyến</span>
+                </div>
+                <div class="user">
+                    <span>👤</span>
+                    <span>Quản trị viên</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- QUICK ACTIONS TOOLBAR -->
+        <div class="quick-actions-bar">
+            <a href="/foods/add" class="quick-action-btn qa-primary">
+                <span>➕</span>
+                <span>Thêm món mới</span>
+            </a>
+            <a href="/sales" class="quick-action-btn qa-success">
+                <span>💳</span>
+                <span>Tạo đơn bán hàng</span>
+            </a>
+            <a href="/ingredients" class="quick-action-btn qa-warning">
+                <span>📦</span>
+                <span>Kiểm kê kho</span>
+            </a>
+            <a href="/reports" class="quick-action-btn qa-purple">
+                <span>📈</span>
+                <span>Báo cáo doanh thu</span>
+            </a>
+            <a href="/ai-chat" class="quick-action-btn qa-indigo">
+                <span>🤖</span>
+                <span>Hỏi Trợ lý AI</span>
+            </a>
         </div>
 
-    </section>
+        <!-- 4 KPI STAT CARDS -->
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    🍜
+                </div>
+                <div>
+                    <p>Tổng món ăn</p>
+                    <h2>{{ food_count }}</h2>
+                    <span class="stat-badge">Món đang phục vụ</span>
+                </div>
+            </div>
 
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    📦
+                </div>
+                <div>
+                    <p>Kho nguyên liệu</p>
+                    <h2>{{ ingredient_count }}</h2>
+                    <span class="stat-badge">Mặt hàng tồn kho</span>
+                </div>
+            </div>
 
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    🚚
+                </div>
+                <div>
+                    <p>Nhà cung cấp</p>
+                    <h2>{{ supplier_count }}</h2>
+                    <span class="stat-badge">Đối tác liên kết</span>
+                </div>
+            </div>
 
-    <!-- TỔNG QUAN -->
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    💰
+                </div>
+                <div>
+                    <p>Doanh thu</p>
+                    <h2>{{ "{:,.0f}".format(revenue) }}đ</h2>
+                    <span class="stat-badge">Tổng doanh số tích lũy</span>
+                </div>
+            </div>
+        </section>
 
-    <section class="panel">
+        <!-- DASHBOARD TWO-COLUMN GRID -->
+        <section class="dashboard-grid">
 
-        <div class="panel-header">
+            <!-- CỘT TRÁI: MÓN BÁN CHẠY & AI HUB -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
 
-            <h2>
-                📊 Tổng quan
-            </h2>
+                <!-- MÓN BÁN CHẠY -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>🔥 Món bán chạy nhất</h2>
+                        <a href="/sales">Xem bán hàng →</a>
+                    </div>
 
-        </div>
+                    {% if best_selling and best_selling|length > 0 %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Thứ hạng</th>
+                                <th>Tên món ăn</th>
+                                <th style="width: 140px; text-align: right;">Số lượng bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for food in best_selling %}
+                            <tr>
+                                <td>
+                                    {% if loop.index == 1 %}
+                                        <span class="rank-badge rank-1">🥇 1</span>
+                                    {% elif loop.index == 2 %}
+                                        <span class="rank-badge rank-2">🥈 2</span>
+                                    {% elif loop.index == 3 %}
+                                        <span class="rank-badge rank-3">🥉 3</span>
+                                    {% else %}
+                                        <span class="rank-badge rank-other">{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>🍜 {{ food["name"] }}</strong>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span class="badge badge-success">{{ food["total_sold"] }} phần</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <span class="empty-state-icon">🍽️</span>
+                        <h4>Chưa có dữ liệu bán hàng</h4>
+                        <p>Bắt đầu ghi nhận các đơn đặt món để theo dõi xu hướng ẩm thực yêu thích của căng tin!</p>
+                        <a href="/sales" class="empty-state-btn">👉 Đi tới Bán hàng ngay</a>
+                    </div>
+                    {% endif %}
+                </div>
 
+                <!-- AI COMMAND CENTER (HUB) -->
+                <div class="panel ai-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>✨ Trung tâm Trí tuệ Nhân tạo AI</h2>
+                            <p>Tự động phân tích dữ liệu, tối ưu hóa thực đơn và dự báo doanh số</p>
+                        </div>
+                        <a href="/ai-chat">Mở trợ lý AI 💬</a>
+                    </div>
 
-        <div style="
-            display:grid;
-            grid-template-columns:
-            repeat(2, 1fr);
-            gap:20px;
-        ">
+                    <div class="ai-features-grid">
+                        <a href="/ai-recommend" class="ai-feature-card">
+                            <div>
+                                <div class="ai-feature-icon">🍲</div>
+                                <h4>Đề xuất thực đơn</h4>
+                                <p>Gợi ý món ăn thông minh dựa trên lượng nguyên liệu sắp hết.</p>
+                            </div>
+                            <span class="ai-feature-link">Khám phá ngay →</span>
+                        </a>
 
+                        <a href="/ai-feedback" class="ai-feature-card">
+                            <div>
+                                <div class="ai-feature-icon">🧠</div>
+                                <h4>Tổng hợp phản hồi</h4>
+                                <p>Phân tích đánh giá và cảm nhận của khách hàng để nâng cao dịch vụ.</p>
+                            </div>
+                            <span class="ai-feature-link">Xem chi tiết →</span>
+                        </a>
 
-            <div style="
-                padding:20px;
-                background:#f8fafc;
-                border-radius:12px;
-            ">
-
-                <p>
-                    Tổng giao dịch
-                </p>
-
-                <h2>
-                    {{ sale_count }}
-                </h2>
+                        <a href="/ai-report" class="ai-feature-card">
+                            <div>
+                                <div class="ai-feature-icon">📊</div>
+                                <h4>Dự báo doanh thu</h4>
+                                <p>Báo cáo xu hướng tài chính và khuyến nghị chiến lược kinh doanh.</p>
+                            </div>
+                            <span class="ai-feature-link">Phân tích số liệu →</span>
+                        </a>
+                    </div>
+                </div>
 
             </div>
 
+            <!-- CỘT PHẢI: NGUYÊN LIỆU SẮP HẾT & TỔNG QUAN -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
 
-            <div style="
-                padding:20px;
-                background:#f8fafc;
-                border-radius:12px;
-            ">
+                <!-- NGUYÊN LIỆU SẮP HẾT -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>⚠️ Cảnh báo tồn kho</h2>
+                        <a href="/ingredients">Quản lý kho →</a>
+                    </div>
 
-                <p>
-                    Trạng thái hệ thống
-                </p>
+                    {% if low_ingredients and low_ingredients|length > 0 %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nguyên liệu</th>
+                                <th>Còn lại</th>
+                                <th style="text-align: right;">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ingredient in low_ingredients %}
+                            <tr>
+                                <td>
+                                    <strong>📦 {{ ingredient["name"] }}</strong>
+                                </td>
+                                <td>
+                                    <span style="color: #dc2626; font-weight: 700;">
+                                        {{ ingredient["quantity"] }} {{ ingredient["unit"] }}
+                                    </span>
+                                    <small style="color: #64748b;">(Tối thiểu: {{ ingredient["min_quantity"] }})</small>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span class="badge-danger">Cần nhập gấp</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state" style="padding: 24px;">
+                        <span class="empty-state-icon" style="font-size: 32px; color: #10b981;">✅</span>
+                        <h4 style="color: #047857;">Kho nguyên liệu an toàn</h4>
+                        <p style="margin-bottom: 0;">Tất cả nguyên liệu trong kho hiện đang đạt mức định lượng an toàn.</p>
+                    </div>
+                    {% endif %}
+                </div>
 
-                <h2>
-                    🟢 Hoạt động
-                </h2>
+                <!-- TỔNG QUAN HỆ THỐNG -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>📊 Tổng quan vận hành</h2>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div style="padding: 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;">
+                            <p style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Tổng giao dịch</p>
+                            <h2 style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px;">{{ sale_count }}</h2>
+                            <small style="color: #64748b;">Đơn hàng đã hoàn thành</small>
+                        </div>
+
+                        <div style="padding: 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;">
+                            <p style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Trạng thái hệ thống</p>
+                            <h2 style="font-size: 18px; font-weight: 800; color: #047857; margin-top: 10px;">🟢 Sẵn sàng</h2>
+                            <small style="color: #64748b;">AI & Database Online</small>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 18px; padding: 14px 16px; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 12px; font-size: 13px; color: #1e40af; line-height: 1.5;">
+                        💡 <strong>Mẹo:</strong> Nhấn vào biểu tượng <strong>💬</strong> ở góc dưới bên phải hoặc vào menu <strong>Trợ lý AI Căng tin</strong> để tra cứu nhanh doanh thu, công thức món ăn hoặc phân tích số liệu bất kỳ lúc nào!
+                    </div>
+                </div>
 
             </div>
 
+        </section>
 
-        </div>
-
-    </section>
-
-
-</main>
+    </main>
 
 </div>
 
-<!-- AI CHAT WIDGET -->
+<!-- FLOATING AI CHAT WIDGET -->
 <div id="chat-widget" class="chat-widget">
     <div id="chat-header" class="chat-header">
-        <span>🤖 Trợ lý Căng tin</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span>🤖</span>
+            <span>Trợ lý AI Căng tin</span>
+        </div>
         <button id="close-chat" class="chat-close-btn">&times;</button>
     </div>
     <div id="chat-messages" class="chat-messages">
-        <div class="chat-message bot-message">Xin chào! Tôi là Trợ lý AI. Bạn cần tôi giúp gì về số liệu kinh doanh hôm nay?</div>
+        <div class="chat-message bot-message">Xin chào! Tôi là Trợ lý AI Căng tin. Bạn cần tôi phân tích món ăn, doanh số hay kiểm tra nguyên liệu nào hôm nay?</div>
     </div>
     <div class="chat-input-area">
-        <input type="text" id="chat-input" placeholder="Nhập câu hỏi...">
+        <input type="text" id="chat-input" placeholder="Hỏi AI bất kỳ điều gì...">
         <button id="send-chat" class="send-btn">Gửi</button>
     </div>
 </div>
 
-<button id="chat-toggle-btn" class="chat-toggle-btn">
+<button id="chat-toggle-btn" class="chat-toggle-btn" title="Trò chuyện với Trợ lý AI">
     💬
 </button>
 
@@ -543,23 +359,25 @@
 .chat-widget {
     display: none;
     position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 320px;
-    height: 400px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    bottom: 84px;
+    right: 24px;
+    width: 360px;
+    height: 480px;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.2);
     flex-direction: column;
     z-index: 1000;
     overflow: hidden;
+    border: 1px solid #e2e8f0;
 }
 
 .chat-header {
-    background: #7c3aed;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: white;
-    padding: 12px 15px;
-    font-weight: bold;
+    padding: 14px 18px;
+    font-weight: 700;
+    font-size: 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -569,81 +387,110 @@
     background: none;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+.chat-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .chat-messages {
     flex: 1;
-    padding: 15px;
+    padding: 16px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     background: #f8fafc;
 }
 
 .chat-message {
-    max-width: 80%;
-    padding: 10px 12px;
-    border-radius: 15px;
-    font-size: 0.9em;
-    line-height: 1.4;
+    max-width: 85%;
+    padding: 11px 15px;
+    border-radius: 16px;
+    font-size: 13.5px;
+    line-height: 1.5;
 }
 
 .bot-message {
-    background: #e2e8f0;
+    background: #ffffff;
     color: #1e293b;
     align-self: flex-start;
-    border-bottom-left-radius: 2px;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+    border: 1px solid #e2e8f0;
 }
 
 .user-message {
-    background: #7c3aed;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
     color: white;
     align-self: flex-end;
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
 }
 
 .chat-input-area {
     display: flex;
-    padding: 10px;
-    background: #fff;
+    padding: 12px 14px;
+    background: #ffffff;
     border-top: 1px solid #e2e8f0;
+    gap: 8px;
 }
 
 .chat-input-area input {
     flex: 1;
-    padding: 8px 12px;
+    padding: 10px 14px;
     border: 1px solid #cbd5e1;
-    border-radius: 20px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-family: inherit;
     outline: none;
+}
+.chat-input-area input:focus {
+    border-color: #6366f1;
 }
 
 .send-btn {
-    background: #7c3aed;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: white;
     border: none;
-    padding: 8px 15px;
-    margin-left: 8px;
-    border-radius: 20px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
     cursor: pointer;
+    transition: transform 0.15s;
+}
+.send-btn:hover {
+    transform: scale(1.04);
 }
 
 .chat-toggle-btn {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 25px;
-    background: #7c3aed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: white;
-    font-size: 24px;
+    font-size: 26px;
     border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
     cursor: pointer;
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.chat-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.5);
 }
 </style>
 
@@ -656,21 +503,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     const chatMessages = document.getElementById('chat-messages');
 
-    // Toggle widget
     chatToggleBtn.addEventListener('click', () => {
         chatWidget.style.display = chatWidget.style.display === 'flex' ? 'none' : 'flex';
+        if (chatWidget.style.display === 'flex') {
+            chatInput.focus();
+        }
     });
 
     closeChatBtn.addEventListener('click', () => {
         chatWidget.style.display = 'none';
     });
 
-    // Send message
     const sendMessage = async () => {
         const text = chatInput.value.trim();
         if (!text) return;
 
-        // Add user message to UI
         const userDiv = document.createElement('div');
         userDiv.className = 'chat-message user-message';
         userDiv.textContent = text;
@@ -679,7 +526,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatInput.value = '';
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Add thinking indicator
         const botDiv = document.createElement('div');
         botDiv.className = 'chat-message bot-message';
         botDiv.textContent = 'Đang phân tích...';
@@ -693,11 +539,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ message: text })
             });
             const data = await response.json();
-            
-            // Format response (convert basic markdown to html if needed, or just set text)
-            botDiv.innerHTML = data.response.replace(/\n/g, '<br>');
+            botDiv.innerHTML = (data.response || 'Đã nhận được thông tin.').replace(/\n/g, '<br>');
         } catch (e) {
-            botDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại sau.';
+            botDiv.textContent = 'Lỗi kết nối máy chủ. Vui lòng thử lại sau.';
         }
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
