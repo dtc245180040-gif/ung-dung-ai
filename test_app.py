@@ -288,3 +288,10 @@ def test_ai_chat_api(client):
         assert rv_chat.status_code == 200
         data = rv_chat.get_json()
         assert "trợ lý Căng tin" in data["response"]
+
+def test_ai_chat_page_access(client):
+    """TC_AI_03: Truy cập trang Trợ lý AI Căng tin (/ai-chat) thành công."""
+    rv = client.get('/ai-chat')
+    assert rv.status_code == 200
+    assert "Trợ lý AI" in rv.text
+

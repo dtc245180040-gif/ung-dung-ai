@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ lý AI Căng tin - Smart Canteen</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .chat-main {
+            margin-left: 250px;
+            padding: 25px 35px;
+            width: calc(100% - 250px);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #f8fafc;
+        }
+
+        .chat-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+        }
+
+        .chat-header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-header-title .icon {
+            font-size: 32px;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            color: white;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .chat-header-title h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #1e293b;
+        }
+
+        .chat-header-title p {
+            margin: 3px 0 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ecfdf5;
+            color: #059669;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .quick-stats-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .quick-stat-chip {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #475569;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-stat-chip strong {
+            color: #1e293b;
+        }
+
+        /* Suggestions chips */
+        .suggestions-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+
+        .suggestion-btn {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-btn:hover {
+            background: #dbeafe;
+            transform: translateY(-1px);
+        }
+
+        /* Chat box */
+        .chat-box {
+            flex: 1;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .chat-messages-area {
+            flex: 1;
+            padding: 20px 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+        }
+
+        .message-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-row.bot {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .bot .message-avatar {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: white;
+        }
+
+        .user .message-avatar {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .message-bubble {
+            padding: 12px 18px;
+            border-radius: 16px;
+            font-size: 14.5px;
+            line-height: 1.6;
+        }
+
+        .user .message-bubble {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot .message-bubble {
+            background: #f1f5f9;
+            color: #1e293b;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .bot .message-bubble p {
+            margin: 0 0 8px;
+        }
+        .bot .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .bot .message-bubble ul {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+
+        .bot .message-bubble strong {
+            color: #0f172a;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+            display: block;
+            text-align: right;
+        }
+
+        .bot .message-time {
+            text-align: left;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 12px 18px;
+            background: #f1f5f9;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Input section */
+        .chat-input-wrapper {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-input-wrapper input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input-wrapper input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-send:hover {
+            opacity: 0.92;
+        }
+
+        .btn-clear {
+            background: #f1f5f9;
+            color: #64748b;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>SMART</h2>
+            <span>CANTEEN</span>
+        </div>
+
+        <nav>
+            <a href="/dashboard">
+                📊 Dashboard
+            </a>
+            <a href="/foods">
+                🍜 Món ăn
+            </a>
+            <a href="/ingredients">
+                📦 Nguyên liệu
+            </a>
+            <a href="/suppliers">
+                🚚 Nhà cung cấp
+            </a>
+            <a href="/sales">
+                💰 Bán hàng
+            </a>
+            <a href="/feedback">
+                💬 Phản hồi
+            </a>
+            <a href="/reports">
+                📈 Báo cáo
+            </a>
+            <a href="/ai-recommend">
+                🤖 AI Đề xuất thực đơn
+            </a>
+            <a href="/ai-feedback">
+                🧠 AI Tổng hợp phản hồi
+            </a>
+            <a href="/ai-report">
+                📊 AI Báo cáo doanh thu
+            </a>
+            <a href="/ai-chat" class="active">
+                💬 Trợ lý AI Căng tin
+            </a>
+        </nav>
+
+        <div class="logout">
+            <a href="/logout">
+                🚪 Đăng xuất
+            </a>
+        </div>
+    </aside>
+
+    <!-- CHAT MAIN -->
+    <main class="chat-main">
+        <div class="chat-header-bar">
+            <div class="chat-header-title">
+                <div class="icon">🤖</div>
+                <div>
+                    <h2>Trợ lý AI Quản lý Căng tin</h2>
+                    <p>Ứng dụng công nghệ Google Gemini API • Hỗ trợ ra quyết định thông minh</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="status-badge">
+                    <span class="status-dot"></span>
+                    Google Gemini 3.5 Flash Active
+                </span>
+                <button id="clearChatBtn" class="btn-clear" title="Xóa lịch sử trò chuyện">🗑️ Xóa hội thoại</button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats-bar">
+            <div class="quick-stat-chip">🍜 Món ăn: <strong>{{ food_count }}</strong> món</div>
+            <div class="quick-stat-chip">📦 Kho nguyên liệu: <strong>{{ ingredient_count }}</strong> loại</div>
+            <div class="quick-stat-chip">💰 Doanh thu: <strong>{{ "{:,.0f}".format(revenue) }} VNĐ</strong></div>
+        </div>
+
+        <!-- Suggestions chips -->
+        <div class="suggestions-container">
+            <button class="suggestion-btn" onclick="askQuestion('Tình hình doanh thu và số lượng đơn hàng hiện tại thế nào?')">📊 Doanh thu hôm nay</button>
+            <button class="suggestion-btn" onclick="askQuestion('Căng tin hiện có những món ăn nào và giá bán bao nhiêu?')">🍜 Danh sách món ăn</button>
+            <button class="suggestion-btn" onclick="askQuestion('Hiện tại có nguyên liệu nào sắp hết kho cần phải nhập thêm gấp không?')">⚠️ Cảnh báo tồn kho</button>
+            <button class="suggestion-btn" onclick="askQuestion('Món nào đang bán chạy nhất và có đề xuất gì để tăng doanh thu?')">💡 Gợi ý chiến lược bán hàng</button>
+        </div>
+
+        <!-- Chat Box -->
+        <div class="chat-box">
+            <div id="messagesArea" class="chat-messages-area">
+                <!-- Welcome Bot Message -->
+                <div class="message-row bot">
+                    <div class="message-avatar">🤖</div>
+                    <div>
+                        <div class="message-bubble">
+                            Xin chào! Tôi là <strong>Trợ lý Trí tuệ Nhân tạo Smart Canteen</strong> (kết nối trực tiếp với Google Gemini API).<br><br>
+                            Tôi đã nắm bắt toàn bộ dữ liệu thực đơn, kho nguyên liệu và doanh thu của căng tin. Bạn có thể bấm vào các gợi ý bên trên hoặc nhập bất kỳ câu hỏi nào để được giải đáp tức thì!
+                        </div>
+                        <span class="message-time">Bây giờ</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="chat-input-wrapper">
+                <input type="text" id="userInput" placeholder="Nhập câu hỏi cho Trợ lý AI (ví dụ: món nào đang bán chạy nhất?)..." autocomplete="off">
+                <button id="sendBtn" class="btn-send">
+                    <span>Gửi câu hỏi</span>
+                    <span>➤</span>
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const messagesArea = document.getElementById('messagesArea');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const clearChatBtn = document.getElementById('clearChatBtn');
+
+    function getCurrentTime() {
+        const now = new Date();
+        return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    }
+
+    function formatMarkdown(text) {
+        if (!text) return '';
+        // In đậm **text**
+        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // In nghiêng *text*
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        // Xuống dòng
+        formatted = formatted.replace(/\n/g, '<br>');
+        return formatted;
+    }
+
+    function appendMessage(sender, text) {
+        const row = document.createElement('div');
+        row.className = `message-row ${sender}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.textContent = sender === 'user' ? '👤' : '🤖';
+
+        const contentWrap = document.createElement('div');
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        
+        if (sender === 'user') {
+            bubble.textContent = text;
+        } else {
+            bubble.innerHTML = formatMarkdown(text);
+        }
+
+        const time = document.createElement('span');
+        time.className = 'message-time';
+        time.textContent = getCurrentTime();
+
+        contentWrap.appendChild(bubble);
+        contentWrap.appendChild(time);
+
+        row.appendChild(avatar);
+        row.appendChild(contentWrap);
+
+        messagesArea.appendChild(row);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        const id = 'typingIndicator_' + Date.now();
+        const row = document.createElement('div');
+        row.id = id;
+        row.className = 'message-row bot';
+        row.innerHTML = `
+            <div class="message-avatar">🤖</div>
+            <div>
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        `;
+        messagesArea.appendChild(row);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        return id;
+    }
+
+    function removeTypingIndicator(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    async function handleSend() {
+        const query = userInput.value.trim();
+        if (!query) return;
+
+        appendMessage('user', query);
+        userInput.value = '';
+        userInput.focus();
+
+        const indicatorId = showTypingIndicator();
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: query })
+            });
+            const data = await res.json();
+            removeTypingIndicator(indicatorId);
+            appendMessage('bot', data.response || 'Xin lỗi, không nhận được phản hồi từ hệ thống.');
+        } catch (err) {
+            removeTypingIndicator(indicatorId);
+            appendMessage('bot', '⚠️ Không thể kết nối với dịch vụ AI lúc này. Vui lòng thử lại sau.');
+        }
+    }
+
+    function askQuestion(q) {
+        userInput.value = q;
+        handleSend();
+    }
+
+    sendBtn.addEventListener('click', handleSend);
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSend();
+        }
+    });
+
+    clearChatBtn.addEventListener('click', () => {
+        if (confirm('Bạn có chắc chắn muốn xóa toàn bộ đoạn hội thoại này không?')) {
+            messagesArea.innerHTML = `
+                <div class="message-row bot">
+                    <div class="message-avatar">🤖</div>
+                    <div>
+                        <div class="message-bubble">
+                            Đã làm mới cuộc hội thoại. Hãy đặt câu hỏi cho tôi về căng tin!
+                        </div>
+                        <span class="message-time">${getCurrentTime()}</span>
+                    </div>
+                </div>
+            `;
+        }
+    });
+</script>
+
+</body>
+</html>

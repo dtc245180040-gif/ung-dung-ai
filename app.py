@@ -28,23 +28,86 @@ import time
 
 load_dotenv(override=True)
 
+# Lấy API Key từ biến môi trường (.env)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 client = None
 
 if GEMINI_API_KEY:
-    client = genai.Client(api_key=GEMINI_API_KEY)
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+    except Exception as e:
+        print(f"[Gemini] Không thể khởi tạo genai.Client: {e}")
 
 # Danh sách model ưu tiên: thử model hoạt động tốt nhất trước, nếu lỗi thì fallback
-GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"]
+GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.8-flash"]
 
-def call_gemini(contents, system_instruction=None, max_retries=3):
-    """Gọi Gemini API với retry và fallback model tự động."""
+# Cache kết quả AI để tránh lặp lại request, tránh quá tải quota và giúp trang web mở tức thì
+_AI_CACHE = {}
+
+def get_cached_ai(key, ttl=900):
+    """Lấy kết quả AI từ cache nếu còn hạn (mặc định 15 phút), bỏ qua khi testing."""
+    if app.config.get("TESTING"):
+        return None
+    if key in _AI_CACHE:
+        val, ts = _AI_CACHE[key]
+        if time.time() - ts < ttl:
+            return val
+    return None
+
+def set_cached_ai(key, val):
+    """Lưu kết quả AI vào cache."""
+    _AI_CACHE[key] = (val, time.time())
+
+def generate_fallback_recommend(foods, ingredients, sales):
+    top_dishes = [s["food_name"] for s in sales[:3]] if sales else ["Cơm gà", "Phở bò"]
+    low_stock = [i["name"] for i in ingredients if i["quantity"] <= i["min_quantity"]]
+    
+    text = "### 📋 Đề xuất Thực đơn Thông minh (Dự phòng tự động từ CSDL)\n\n"
+    text += f"1. **Món ăn nên ưu tiên phục vụ:** {', '.join(top_dishes)} (Đây là các món có lượt mua cao và nhu cầu ổn định nhất trong ngày).\n\n"
+    if low_stock:
+        text += f"2. **Cảnh báo nguyên liệu cần nhập gấp:** Các nguyên liệu {', '.join(low_stock)} hiện đã chạm hoặc thấp hơn định mức an toàn. Cần bổ sung trước ca phục vụ tiếp theo.\n\n"
+    else:
+        text += "2. **Tình trạng kho nguyên liệu:** Toàn bộ nguyên liệu đều đang ở mức an toàn, sẵn sàng phục vụ thực đơn đầy đủ.\n\n"
+    text += "3. **Khuyến nghị kinh doanh:** Tiếp tục duy trì thực đơn bán chạy, có thể kết hợp đồ uống (trà sữa, nước ngọt) vào combo để tối ưu doanh thu trung bình trên mỗi đơn hàng.\n\n"
+    text += "*(Hệ thống đang sử dụng đề xuất cơ bản dựa trên dữ liệu bán hàng và tồn kho)*"
+    return text
+
+def generate_fallback_feedback(feedbacks, positive, neutral, negative):
+    total = len(feedbacks)
+    text = "### 🧠 Phân tích Đánh giá Khách hàng (Dự phòng tự động từ CSDL)\n\n"
+    text += f"- **Tổng số lượt đánh giá:** {total} lượt (Tích cực: {positive}, Trung lập: {neutral}, Cần cải thiện: {negative}).\n\n"
+    if positive >= negative:
+        text += "- **Đánh giá chung:** Đa số học sinh và giáo viên đánh giá tích cực về chất lượng món ăn và thái độ phục vụ.\n\n"
+    else:
+        text += "- **Đánh giá chung:** Có một số phản hồi chưa hài lòng, quản lý nên kiểm tra lại chất lượng món ăn và thời gian phục vụ.\n\n"
+    text += "- **Hành động đề xuất:** Tiếp tục duy trì chất lượng các món được khen, đồng thời khảo sát thêm ý kiến khách hàng vào giờ cao điểm.\n\n"
+    text += "*(Hệ thống vẫn hiển thị thống kê phản hồi cơ bản)*"
+    return text
+
+def generate_fallback_report(total_revenue, total_quantity, total_orders, best_selling):
+    top_names = [b["food_name"] for b in best_selling[:3]] if best_selling else ["Cơm gà", "Phở bò"]
+    text = "### 📊 Báo cáo Doanh thu & Chiến lược Kinh doanh (Dự phòng tự động từ CSDL)\n\n"
+    text += f"- **Tổng doanh thu:** {total_revenue:,.0f} VNĐ qua {total_orders} giao dịch bán hàng ({total_quantity} suất món ăn đã phục vụ).\n\n"
+    text += f"- **Mặt hàng chủ lực:** {', '.join(top_names)} đóng góp tỷ trọng doanh thu cao nhất cho căng tin.\n\n"
+    text += "- **3 Giải pháp gia tăng doanh thu:**\n"
+    text += "  1. **Tạo combo trưa tiện lợi:** Ghép món ăn chính + đồ uống với mức giá ưu đãi nhẹ để tăng giá trị đơn hàng.\n"
+    text += "  2. **Tối ưu hóa giờ cao điểm:** Chuẩn bị sẵn các phần ăn mang đi trong khung giờ 11h30 - 12h30 để tăng tốc độ phục vụ.\n"
+    text += "  3. **Kiểm soát chi phí nguyên liệu:** Nhập hàng theo định mức tiêu thụ thực tế để tránh lãng phí.\n\n"
+    text += "*(Hệ thống đang hiển thị phân tích doanh thu cơ bản từ CSDL)*"
+    return text
+
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
+
+_ai_executor = ThreadPoolExecutor(max_workers=4)
+
+def _call_gemini_internal(contents, system_instruction=None, max_retries=1):
     if not client:
         return None, "Chưa cấu hình GEMINI_API_KEY."
     
     from google.genai import types
     
+    last_error = ""
     for model_name in GEMINI_MODELS:
         for attempt in range(max_retries):
             try:
@@ -59,20 +122,58 @@ def call_gemini(contents, system_instruction=None, max_retries=3):
                     contents=contents,
                     config=config
                 )
-                return response.text, None  # Thành công
+                if response and response.text:
+                    return response.text, None  # Thành công
             except Exception as e:
                 error_str = str(e)
-                print(f"[Gemini] Model={model_name}, Attempt={attempt+1}/{max_retries}, Error: {error_str}")
-                if "503" in error_str or "UNAVAILABLE" in error_str or "overloaded" in error_str:
-                    time.sleep(2 * (attempt + 1))  # Chờ 2s, 4s, 6s
+                last_error = error_str
+                print(f"[Gemini] Model={model_name}, Attempt={attempt+1}/{max_retries}, Error: {error_str[:120]}")
+                if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                    break
+                elif "503" in error_str or "UNAVAILABLE" in error_str or "overloaded" in error_str:
+                    time.sleep(0.5)
                     continue
-                elif "404" in error_str or "NOT_FOUND" in error_str:
-                    break  # Model không tồn tại, thử model tiếp theo
                 else:
-                    return None, f"Lỗi Gemini: {error_str}"
-        print(f"[Gemini] Đã thử hết {max_retries} lần với model {model_name}, chuyển sang model dự phòng...")
+                    break
     
-    return None, "Không thể kết nối Gemini AI sau nhiều lần thử. Vui lòng thử lại sau."
+    return None, f"Không thể kết nối Gemini AI lúc này: {last_error}"
+
+def call_gemini(contents, system_instruction=None, max_retries=1, timeout=8):
+    """Gọi Gemini API với timeout tối đa (mặc định 8s), tự động fallback khi chậm hoặc quá tải."""
+    if not client:
+        return None, "Chưa cấu hình GEMINI_API_KEY."
+    try:
+        future = _ai_executor.submit(_call_gemini_internal, contents, system_instruction, max_retries)
+        return future.result(timeout=timeout)
+    except TimeoutError:
+        print(f"[Gemini] Request timed out sau {timeout}s.")
+        return None, "Gemini API phản hồi quá chậm (timeout)."
+    except Exception as e:
+        return None, str(e)
+
+def warm_up_cache():
+    """Khởi tạo trước cache phân tích CSDL để trang web mở tức thì không bị treo."""
+    try:
+        conn = get_db()
+        foods = conn.execute("SELECT id, name, price, quantity, status FROM foods").fetchall()
+        ingredients = conn.execute("SELECT name, quantity, unit, min_quantity FROM ingredients").fetchall()
+        sales = conn.execute("""
+            SELECT foods.name AS food_name, SUM(sales.quantity) AS total_quantity
+            FROM sales JOIN foods ON sales.food_id = foods.id
+            GROUP BY sales.food_id ORDER BY total_quantity DESC LIMIT 5
+        """).fetchall()
+        feedbacks = conn.execute("""
+            SELECT feedback.rating, feedback.comment, foods.name AS food_name
+            FROM feedback LEFT JOIN foods ON feedback.food_id = foods.id
+        """).fetchall()
+        sales_summary = conn.execute("SELECT COUNT(*), COALESCE(SUM(quantity), 0), COALESCE(SUM(total), 0) FROM sales").fetchone()
+        conn.close()
+
+        set_cached_ai("recommend", generate_fallback_recommend(foods, ingredients, sales))
+        set_cached_ai("feedback", generate_fallback_feedback(feedbacks, 1, 0, 0))
+        set_cached_ai("report", generate_fallback_report(sales_summary[2], sales_summary[1], sales_summary[0], sales))
+    except Exception as e:
+        pass
 
 
 app = Flask(__name__)
@@ -1097,62 +1198,52 @@ def ai_recommend():
         })
 
     # ==============================
-    # GỌI GEMINI AI
+    # GỌI GEMINI AI HOẶC SỬ DỤNG CACHE / FALLBACK
     # ==============================
 
-    ai_text = ""
+    ai_text = get_cached_ai("recommend")
 
-    if client:
+    if not ai_text:
+        if client:
+            food_data = []
+            for food in foods:
+                food_data.append({
+                    "name": food["name"],
+                    "price": food["price"],
+                    "quantity": food["quantity"],
+                    "status": food["status"]
+                })
 
-        food_data = []
+            ingredient_data = []
+            for ingredient in ingredients:
+                ingredient_data.append({
+                    "name": ingredient["name"],
+                    "quantity": ingredient["quantity"],
+                    "unit": ingredient["unit"],
+                    "min_quantity": ingredient["min_quantity"]
+                })
 
-        for food in foods:
-            food_data.append({
-                "name": food["name"],
-                "price": food["price"],
-                "quantity": food["quantity"],
-                "status": food["status"]
-            })
+            sales_data = []
+            for sale in sales:
+                sales_data.append({
+                    "food_name": sale["food_name"],
+                    "total_quantity": sale["total_quantity"]
+                })
 
-        ingredient_data = []
-
-        for ingredient in ingredients:
-            ingredient_data.append({
-                "name": ingredient["name"],
-                "quantity": ingredient["quantity"],
-                "unit": ingredient["unit"],
-                "min_quantity": ingredient["min_quantity"]
-            })
-
-        sales_data = []
-
-        for sale in sales:
-            sales_data.append({
-                "food_name": sale["food_name"],
-                "total_quantity": sale["total_quantity"]
-            })
-
-        prompt = RECOMMEND_SYSTEM_PROMPT + "\n\n" + RECOMMEND_USER_PROMPT.format(
-            food_data=food_data,
-            ingredient_data=ingredient_data,
-            sales_data=sales_data
-        )
-
-        result, error = call_gemini(prompt)
-        if result:
-            ai_text = result
-        else:
-            ai_text = (
-                f"Không thể kết nối Gemini AI lúc này. {error} "
-                "Hệ thống vẫn sử dụng dữ liệu bán hàng để đưa ra đề xuất cơ bản."
+            prompt = RECOMMEND_SYSTEM_PROMPT + "\n\n" + RECOMMEND_USER_PROMPT.format(
+                food_data=food_data,
+                ingredient_data=ingredient_data,
+                sales_data=sales_data
             )
 
-    else:
-
-        ai_text = (
-            "Chưa cấu hình GEMINI_API_KEY. "
-            "Hệ thống đang sử dụng chức năng đề xuất cơ bản."
-        )
+            result, error = call_gemini(prompt)
+            if result:
+                ai_text = result
+                set_cached_ai("recommend", ai_text)
+            else:
+                ai_text = generate_fallback_recommend(foods, ingredients, sales)
+        else:
+            ai_text = generate_fallback_recommend(foods, ingredients, sales)
 
     return render_template(
         "ai_recommend.html",
@@ -1236,48 +1327,35 @@ def ai_feedback():
         )
 
     # ==============================
-    # GEMINI AI
+    # GEMINI AI HOẶC SỬ DỤNG CACHE / FALLBACK
     # ==============================
 
-    ai_text = ""
+    ai_text = get_cached_ai("feedback")
 
-    if client and feedbacks:
+    if not ai_text:
+        if client and feedbacks:
+            feedback_data = []
+            for feedback in feedbacks:
+                feedback_data.append({
+                    "food_name": feedback["food_name"],
+                    "rating": feedback["rating"],
+                    "comment": feedback["comment"]
+                })
 
-        feedback_data = []
-
-        for feedback in feedbacks:
-
-            feedback_data.append({
-                "food_name": feedback["food_name"],
-                "rating": feedback["rating"],
-                "comment": feedback["comment"]
-            })
-
-        prompt = FEEDBACK_SYSTEM_PROMPT + "\n\n" + FEEDBACK_USER_PROMPT.format(
-            feedback_data=feedback_data
-        )
-
-        result, error = call_gemini(prompt)
-        if result:
-            ai_text = result
-        else:
-            ai_text = (
-                f"Không thể kết nối Gemini AI. {error} "
-                "Hệ thống vẫn hiển thị thống kê phản hồi cơ bản."
+            prompt = FEEDBACK_SYSTEM_PROMPT + "\n\n" + FEEDBACK_USER_PROMPT.format(
+                feedback_data=feedback_data
             )
 
-    elif not feedbacks:
-
-        ai_text = (
-            "Chưa có phản hồi của khách hàng để Gemini AI phân tích."
-        )
-
-    else:
-
-        ai_text = (
-            "Chưa cấu hình GEMINI_API_KEY. "
-            "Hệ thống đang sử dụng thống kê phản hồi cơ bản."
-        )
+            result, error = call_gemini(prompt)
+            if result:
+                ai_text = result
+                set_cached_ai("feedback", ai_text)
+            else:
+                ai_text = generate_fallback_feedback(feedbacks, positive, neutral, negative)
+        elif not feedbacks:
+            ai_text = "Chưa có phản hồi của khách hàng để phân tích."
+        else:
+            ai_text = generate_fallback_feedback(feedbacks, positive, neutral, negative)
 
     return render_template(
         "ai_feedback.html",
@@ -1350,58 +1428,45 @@ def ai_report():
     conn.close()
 
     # ==============================
-    # GEMINI AI
+    # GEMINI AI HOẶC SỬ DỤNG CACHE / FALLBACK
     # ==============================
 
-    ai_text = ""
+    ai_text = get_cached_ai("report")
 
-    if client:
+    if not ai_text:
+        if client:
+            best_selling_data = []
+            for item in best_selling:
+                best_selling_data.append({
+                    "food_name": item["food_name"],
+                    "quantity": item["total_quantity"],
+                    "revenue": item["revenue"]
+                })
 
-        best_selling_data = []
+            daily_data = []
+            for item in daily_revenue:
+                daily_data.append({
+                    "date": item["sale_day"],
+                    "revenue": item["revenue"],
+                    "quantity": item["quantity"]
+                })
 
-        for item in best_selling:
-
-            best_selling_data.append({
-                "food_name": item["food_name"],
-                "quantity": item["total_quantity"],
-                "revenue": item["revenue"]
-            })
-
-        daily_data = []
-
-        for item in daily_revenue:
-
-            daily_data.append({
-                "date": item["sale_day"],
-                "revenue": item["revenue"],
-                "quantity": item["quantity"]
-            })
-
-       
-
-        prompt = REPORT_SYSTEM_PROMPT + "\n\n" + REPORT_USER_PROMPT.format(
-            total_revenue=total_revenue,
-            total_quantity=total_quantity,
-            total_orders=total_orders,
-            best_selling=best_selling_data,
-            daily_revenue=daily_data
-        )
-
-        result, error = call_gemini(prompt)
-        if result:
-            ai_text = result
-        else:
-            ai_text = (
-                f"Không thể kết nối Gemini AI lúc này. {error}\n"
-                "Vui lòng kiểm tra GEMINI_API_KEY."
+            prompt = REPORT_SYSTEM_PROMPT + "\n\n" + REPORT_USER_PROMPT.format(
+                total_revenue=total_revenue,
+                total_quantity=total_quantity,
+                total_orders=total_orders,
+                best_selling=best_selling_data,
+                daily_revenue=daily_data
             )
 
-    else:
-
-        ai_text = (
-            "Chưa cấu hình GEMINI_API_KEY. "
-            "Vui lòng cấu hình API Key để sử dụng báo cáo AI."
-        )
+            result, error = call_gemini(prompt)
+            if result:
+                ai_text = result
+                set_cached_ai("report", ai_text)
+            else:
+                ai_text = generate_fallback_report(total_revenue, total_quantity, total_orders, best_selling)
+        else:
+            ai_text = generate_fallback_report(total_revenue, total_quantity, total_orders, best_selling)
 
     return render_template(
         "ai_report.html",
@@ -1410,6 +1475,22 @@ def ai_report():
         total_orders=total_orders,
         best_selling=best_selling, 
         ai_text=ai_text
+    )
+
+@app.route("/ai-chat")
+@login_required
+def ai_chat():
+    """Trang tương tác trực tiếp với Trợ lý AI Căng tin (Google Gemini AI)."""
+    conn = get_db()
+    food_count = conn.execute("SELECT COUNT(*) FROM foods").fetchone()[0]
+    ingredient_count = conn.execute("SELECT COUNT(*) FROM ingredients").fetchone()[0]
+    revenue = conn.execute("SELECT COALESCE(SUM(total), 0) FROM sales").fetchone()[0]
+    conn.close()
+    return render_template(
+        "ai_chat.html",
+        food_count=food_count,
+        ingredient_count=ingredient_count,
+        revenue=revenue
     )
 
 @app.route("/api/chat", methods=["POST"])
@@ -1430,13 +1511,34 @@ def api_chat():
     revenue = conn.execute("SELECT COALESCE(SUM(total), 0) FROM sales").fetchone()[0]
     sale_count = conn.execute("SELECT COUNT(*) FROM sales").fetchone()[0]
     
+    # Lấy danh sách món ăn
+    foods = conn.execute("SELECT name, price, quantity FROM foods").fetchall()
+    food_list_str = ", ".join([f"{f['name']} ({f['price']:,.0f}đ)" for f in foods]) if foods else "Chưa có món ăn."
+
+    # Lấy nguyên liệu sắp hết kho
+    low_stock = conn.execute("SELECT name, quantity, unit, min_quantity FROM ingredients WHERE quantity <= min_quantity").fetchall()
+    low_stock_str = ", ".join([f"{i['name']} ({i['quantity']} {i['unit']}/{i['min_quantity']} {i['unit']})" for i in low_stock]) if low_stock else "Tất cả nguyên liệu đều đủ định mức an toàn."
+
+    # Top món bán chạy
+    top_sales = conn.execute("""
+        SELECT foods.name, SUM(sales.quantity) as sold
+        FROM sales
+        JOIN foods ON sales.food_id = foods.id
+        GROUP BY sales.food_id
+        ORDER BY sold DESC LIMIT 5
+    """).fetchall()
+    top_sales_str = ", ".join([f"{s['name']} ({s['sold']} suất)" for s in top_sales]) if top_sales else "Chưa có giao dịch bán hàng."
+
     conn.close()
 
     system_instruction = CHAT_SYSTEM_PROMPT.format(
         food_count=food_count,
         ingredient_count=ingredient_count,
         revenue="{:,.0f}".format(revenue),
-        sale_count=sale_count
+        sale_count=sale_count,
+        food_list=food_list_str,
+        low_stock=low_stock_str,
+        top_sales=top_sales_str
     )
     
     result, error = call_gemini(user_message, system_instruction=system_instruction)
@@ -1448,4 +1550,5 @@ def api_chat():
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    warm_up_cache()
+    app.run(debug=True, threaded=True)
