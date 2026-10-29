@@ -1,84 +1,21 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Quản lý nhà cung cấp - Smart Canteen</title>
-
+    <title>Quản lý nhà cung cấp - Smart Canteen AI</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
-
-    <style>
-        .form-container {
-            display: none;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 10px;
-        }
-
-        .form-container input {
-            padding: 10px;
-            margin: 5px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
-        }
-
-        .edit-btn {
-            display: inline-block;
-            padding: 7px 10px;
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            margin-right: 5px;
-        }
-
-        .delete-btn {
-            padding: 7px 10px;
-            border: none;
-            background: #dc2626;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-        }
-
-        .search-box button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            background: #2563eb;
-            color: white;
-            cursor: pointer;
-        }
-    </style>
-
 </head>
-
 <body>
 
 <div class="layout">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <div class="logo">
             <h2>SMART</h2>
             <span>CANTEEN</span>
+            <div class="ai-badge">AI Assistant</div>
         </div>
 
         <nav>
@@ -98,227 +35,164 @@
         <div class="logout">
             <a href="/logout">🚪 Đăng xuất</a>
         </div>
-
     </aside>
-
 
     <!-- MAIN -->
     <main class="main">
 
         <!-- TOPBAR -->
         <header class="topbar">
-
             <div>
                 <h1>Quản lý nhà cung cấp</h1>
-                <p>Quản lý thông tin các nhà cung cấp nguyên liệu</p>
+                <p>Danh bạ đối tác cung ứng thực phẩm và nguyên vật liệu</p>
             </div>
 
-            <div class="user">
-                👤
-                {% if role == "admin" %}
-                    Quản trị viên
-                {% else %}
-                    Nhân viên
-                {% endif %}
+            <div class="topbar-right">
+                <div class="user">
+                    <span>👤</span>
+                    <span>{% if role == "admin" %}Quản trị viên{% else %}Nhân viên{% endif %}</span>
+                </div>
             </div>
-
         </header>
-
 
         <!-- PANEL -->
         <section class="panel">
 
             <!-- HEADER -->
             <div class="panel-header">
-
-                <h2>Danh sách nhà cung cấp</h2>
-
+                <h2>🚚 Danh sách đối tác cung ứng</h2>
                 {% if role == "admin" %}
-
                 <button
                     class="add-btn"
-                    onclick="document.getElementById('addSupplierForm').style.display='block'">
-                    + Thêm nhà cung cấp
+                    onclick="document.getElementById('addSupplierForm').style.display = document.getElementById('addSupplierForm').style.display === 'none' ? 'block' : 'none'">
+                    ➕ Thêm nhà cung cấp
                 </button>
-
                 {% endif %}
-
             </div>
 
-
-            <!-- FORM THÊM -->
+            <!-- FORM THÊM NHÀ CUNG CẤP -->
             {% if role == "admin" %}
-
-            <div
-                id="addSupplierForm"
-                class="form-container"
-            >
-
-                <h3>➕ Thêm nhà cung cấp</h3>
-
+            <div id="addSupplierForm" class="form-card" style="display: none;">
+                <h3>➕ Thêm đối tác cung cấp mới</h3>
                 <form method="POST" action="/suppliers/add">
+                    <div class="form-grid">
+                        <div class="form-group" style="flex: 1.5;">
+                            <label>Tên nhà cung cấp *</label>
+                            <input
+                                type="text"
+                                name="name"
+                                placeholder="Ví dụ: Công ty Thực phẩm Sạch An Toàn"
+                                required
+                            >
+                        </div>
 
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="Tên nhà cung cấp"
-                        required
-                    >
+                        <div class="form-group" style="flex: 1;">
+                            <label>Số điện thoại</label>
+                            <input
+                                type="text"
+                                name="phone"
+                                placeholder="Ví dụ: 0912 345 678"
+                            >
+                        </div>
 
-                    <input
-                        type="text"
-                        name="phone"
-                        placeholder="Số điện thoại"
-                    >
+                        <div class="form-group" style="flex: 1.5;">
+                            <label>Địa chỉ</label>
+                            <input
+                                type="text"
+                                name="address"
+                                placeholder="Ví dụ: Số 123 Đường Cầu Giấy, Hà Nội"
+                            >
+                        </div>
+                    </div>
 
-                    <input
-                        type="text"
-                        name="address"
-                        placeholder="Địa chỉ"
-                    >
-
-                    <button
-                        type="submit"
-                        class="add-btn"
-                    >
-                        💾 Lưu nhà cung cấp
-                    </button>
-
-                    <button
-                        type="button"
-                        onclick="document.getElementById('addSupplierForm').style.display='none'"
-                    >
-                        Hủy
-                    </button>
-
+                    <div style="display: flex; gap: 10px; margin-top: 18px;">
+                        <button type="submit" class="add-btn">
+                            💾 Lưu nhà cung cấp
+                        </button>
+                        <button
+                            type="button"
+                            class="delete-btn"
+                            style="background: #f1f5f9; color: #475569; padding: 10px 18px; border-radius: 10px; font-weight: 700;"
+                            onclick="document.getElementById('addSupplierForm').style.display='none'"
+                        >
+                            Đóng
+                        </button>
+                    </div>
                 </form>
-
             </div>
-
             {% endif %}
 
-
             <!-- TÌM KIẾM -->
-            <form
-                method="GET"
-                action="/suppliers"
-                class="search-box"
-            >
-
+            <form method="GET" action="/suppliers" class="search-box">
                 <input
                     type="text"
                     name="keyword"
-                    placeholder="🔍 Tìm kiếm nhà cung cấp..."
+                    placeholder="🔍 Tìm kiếm đối tác theo tên, số điện thoại, địa chỉ..."
                     value="{{ keyword }}"
                 >
-
-                <button type="submit">
-                    Tìm kiếm
-                </button>
-
+                <button type="submit">Tìm kiếm</button>
             </form>
 
-
-            <!-- BẢNG -->
+            <!-- BẢNG NHÀ CUNG CẤP -->
             <table>
-
                 <thead>
-
                     <tr>
-
-                        <th>ID</th>
-
+                        <th style="width: 70px;">ID</th>
                         <th>Tên nhà cung cấp</th>
-
-                        <th>Số điện thoại</th>
-
+                        <th style="width: 170px;">Số điện thoại</th>
                         <th>Địa chỉ</th>
-
                         {% if role == "admin" %}
-                        <th>Thao tác</th>
+                        <th style="width: 110px; text-align: center;">Thao tác</th>
                         {% endif %}
-
                     </tr>
-
                 </thead>
-
-
                 <tbody>
-
-                {% for supplier in suppliers %}
-
+                    {% for supplier in suppliers %}
                     <tr>
-
+                        <td><strong>#{{ supplier["id"] }}</strong></td>
                         <td>
-                            {{ supplier["id"] }}
+                            <strong style="color: #0f172a;">🚚 {{ supplier["name"] }}</strong>
                         </td>
-
                         <td>
-                            🚚 {{ supplier["name"] }}
+                            {% if supplier["phone"] %}
+                                <span class="badge-blue">📞 {{ supplier["phone"] }}</span>
+                            {% else %}
+                                <span style="color: #94a3b8;">Chưa cập nhật</span>
+                            {% endif %}
                         </td>
-
                         <td>
-                            {{ supplier["phone"] or "Chưa cập nhật" }}
+                            <span style="color: #475569;">{{ supplier["address"] or "Chưa cập nhật" }}</span>
                         </td>
-
-                        <td>
-                            {{ supplier["address"] or "Chưa cập nhật" }}
-                        </td>
-
                         {% if role == "admin" %}
-
-                        <td>
-
-                            <!-- SỬA -->
-                            <a
-                                href="/suppliers/edit/{{ supplier['id'] }}"
-                                class="edit-btn"
-                            >
+                        <td style="text-align: center;">
+                            <a href="/suppliers/edit/{{ supplier['id'] }}" class="edit-btn" title="Chỉnh sửa thông tin">
                                 ✏️
                             </a>
-
-
-                            <!-- XÓA -->
                             <form
                                 method="POST"
                                 action="/suppliers/delete/{{ supplier['id'] }}"
                                 style="display:inline;"
                                 onsubmit="return confirm('Bạn có chắc muốn xóa nhà cung cấp này?');"
                             >
-
-                                <button
-                                    type="submit"
-                                    class="delete-btn"
-                                >
+                                <button type="submit" class="delete-btn" title="Xóa nhà cung cấp">
                                     🗑️
                                 </button>
-
                             </form>
-
                         </td>
-
                         {% endif %}
-
                     </tr>
-
-
-                {% else %}
-
+                    {% else %}
                     <tr>
-
-                        <td
-                            colspan="{% if role == 'admin' %}5{% else %}4{% endif %}"
-                            style="text-align:center;"
-                        >
-                            🚚 Chưa có nhà cung cấp nào.
+                        <td colspan="{% if role == 'admin' %}5{% else %}4{% endif %}">
+                            <div class="empty-state">
+                                <span class="empty-state-icon">🚚</span>
+                                <h4>Chưa có nhà cung cấp nào</h4>
+                                <p>Bấm nút "+ Thêm nhà cung cấp" bên trên để tạo đối tác cung ứng đầu tiên!</p>
+                            </div>
                         </td>
-
                     </tr>
-
-                {% endfor %}
-
+                    {% endfor %}
                 </tbody>
-
             </table>
 
         </section>
@@ -328,5 +202,4 @@
 </div>
 
 </body>
-
 </html>

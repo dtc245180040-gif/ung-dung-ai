@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Sửa món ăn - Smart Canteen</title>
-
+    <title>Sửa món ăn - Smart Canteen AI</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
-
 <body>
 
 <div class="layout">
 
     <aside class="sidebar">
-
         <div class="logo">
             <h2>SMART</h2>
             <span>CANTEEN</span>
+            <div class="ai-badge">AI Assistant</div>
         </div>
 
         <nav>
@@ -29,112 +25,110 @@
             <a href="/sales">💰 Bán hàng</a>
             <a href="/feedback">💬 Phản hồi</a>
             <a href="/reports">📈 Báo cáo</a>
+            <a href="/ai-recommend">🤖 AI Đề xuất thực đơn</a>
+            <a href="/ai-feedback">🧠 AI Tổng hợp phản hồi</a>
+            <a href="/ai-report">📊 AI Báo cáo doanh thu</a>
+            <a href="/ai-chat">💬 Trợ lý AI Căng tin</a>
         </nav>
 
         <div class="logout">
-            <a href="/">🚪 Đăng xuất</a>
+            <a href="/logout">🚪 Đăng xuất</a>
         </div>
-
     </aside>
 
     <main class="main">
 
         <header class="topbar">
-
             <div>
-                <h1>Sửa món ăn</h1>
-                <p>Cập nhật thông tin món ăn</p>
+                <h1>Cập nhật món ăn</h1>
+                <p>Điều chỉnh thông tin, giá bán và trạng thái món</p>
             </div>
 
-            <div class="user">
-                👤 Quản trị viên
+            <div class="topbar-right">
+                <a href="/foods" class="quick-action-btn qa-indigo" style="box-shadow: none;">
+                    <span>←</span>
+                    <span>Quay lại danh sách</span>
+                </a>
+                <div class="user">
+                    <span>👤</span>
+                    <span>Quản trị viên</span>
+                </div>
             </div>
-
         </header>
 
-        <section class="panel">
-
+        <section class="panel" style="max-width: 800px;">
             <div class="panel-header">
-                <h2>Thông tin món ăn</h2>
+                <h2>✏️ Chỉnh sửa: {{ food['name'] }}</h2>
             </div>
 
-            <form method="POST">
-
-                <p>
-                    <label>Tên món ăn</label><br>
-                    <input
-                        type="text"
-                        name="name"
-                        value="{{ food['name'] }}"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label>Loại món</label><br>
-                    <input
-                        type="text"
-                        name="category"
-                        value="{{ food['category'] }}"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label>Giá bán</label><br>
-                    <input
-                        type="number"
-                        name="price"
-                        value="{{ food['price'] }}"
-                        min="0"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label>Số lượng</label><br>
-                    <input
-                        type="number"
-                        name="quantity"
-                        value="{{ food['quantity'] }}"
-                        min="0"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label>Trạng thái</label><br>
-
-                    <select name="status">
-
-                        <option
-                            value="Đang bán"
-                            {% if food['status'] == 'Đang bán' %}selected{% endif %}
+            <form method="POST" class="form-card" style="background: white; border: none; padding: 0;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="form-group">
+                        <label>Tên món ăn *</label>
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ food['name'] }}"
+                            required
                         >
-                            Đang bán
-                        </option>
+                    </div>
 
-                        <option
-                            value="Hết hàng"
-                            {% if food['status'] == 'Hết hàng' %}selected{% endif %}
+                    <div class="form-group">
+                        <label>Loại món *</label>
+                        <input
+                            type="text"
+                            name="category"
+                            value="{{ food['category'] }}"
+                            required
                         >
-                            Hết hàng
-                        </option>
+                    </div>
 
-                    </select>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Giá bán (VNĐ) *</label>
+                            <input
+                                type="number"
+                                name="price"
+                                value="{{ food['price'] }}"
+                                min="0"
+                                required
+                            >
+                        </div>
 
-                </p>
+                        <div class="form-group">
+                            <label>Số lượng phục vụ *</label>
+                            <input
+                                type="number"
+                                name="quantity"
+                                value="{{ food['quantity'] }}"
+                                min="0"
+                                required
+                            >
+                        </div>
+                    </div>
 
-                <button type="submit">
-                    💾 Lưu thay đổi
-                </button>
+                    <div class="form-group">
+                        <label>Trạng thái bán *</label>
+                        <select name="status">
+                            <option value="Đang bán" {% if food['status'] == 'Đang bán' %}selected{% endif %}>
+                                Đang bán
+                            </option>
+                            <option value="Hết hàng" {% if food['status'] == 'Hết hàng' %}selected{% endif %}>
+                                Hết hàng
+                            </option>
+                        </select>
+                    </div>
 
-                <a href="/foods">
-                    ← Quay lại
-                </a>
-
+                    <div style="display: flex; gap: 12px; margin-top: 10px;">
+                        <button type="submit" class="add-btn">
+                            💾 Lưu thay đổi
+                        </button>
+                        <a href="/foods" class="delete-btn" style="background: #f1f5f9; color: #475569; padding: 12px 20px; border-radius: 10px; font-weight: 700; text-decoration: none;">
+                            Hủy bỏ
+                        </a>
+                    </div>
+                </div>
             </form>
-
         </section>
 
     </main>
@@ -142,5 +136,4 @@
 </div>
 
 </body>
-
 </html>

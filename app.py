@@ -28,6 +28,12 @@ import time
 
 load_dotenv(override=True)
 
+def safe_print(*args, **kwargs):
+    try:
+        print(*args, **kwargs)
+    except Exception:
+        pass
+
 # Lấy API Key từ biến môi trường (.env)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -37,7 +43,7 @@ if GEMINI_API_KEY:
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
     except Exception as e:
-        print(f"[Gemini] Không thể khởi tạo genai.Client: {e}")
+        safe_print(f"[Gemini] Không thể khởi tạo genai.Client: {e}")
 
 # Danh sách model ưu tiên: thử model hoạt động tốt nhất trước, nếu lỗi thì fallback
 GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.8-flash"]
@@ -127,7 +133,7 @@ def _call_gemini_internal(contents, system_instruction=None, max_retries=1):
             except Exception as e:
                 error_str = str(e)
                 last_error = error_str
-                print(f"[Gemini] Model={model_name}, Attempt={attempt+1}/{max_retries}, Error: {error_str[:120]}")
+                safe_print(f"[Gemini] Model={model_name}, Attempt={attempt+1}/{max_retries}, Error: {error_str[:120]}")
                 if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
                     break
                 elif "503" in error_str or "UNAVAILABLE" in error_str or "overloaded" in error_str:
@@ -146,7 +152,7 @@ def call_gemini(contents, system_instruction=None, max_retries=1, timeout=8):
         future = _ai_executor.submit(_call_gemini_internal, contents, system_instruction, max_retries)
         return future.result(timeout=timeout)
     except TimeoutError:
-        print(f"[Gemini] Request timed out sau {timeout}s.")
+        safe_print(f"[Gemini] Request timed out sau {timeout}s.")
         return None, "Gemini API phản hồi quá chậm (timeout)."
     except Exception as e:
         return None, str(e)

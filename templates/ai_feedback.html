@@ -1,396 +1,188 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>AI Tổng hợp phản hồi</title>
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #1e293b;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 30px;
-        }
-
-        .header {
-            background: linear-gradient(
-                135deg,
-                #2563eb,
-                #7c3aed
-            );
-
-            color: white;
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-        }
-
-        .header h1 {
-            margin: 0 0 8px;
-        }
-
-        .header p {
-            margin: 0;
-            opacity: 0.9;
-        }
-
-        .back {
-            display: inline-block;
-            margin-top: 18px;
-            color: white;
-            text-decoration: none;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns:
-                repeat(4, 1fr);
-
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 14px;
-            box-shadow:
-                0 4px 15px rgba(0,0,0,0.06);
-        }
-
-        .card p {
-            margin: 0;
-            color: #64748b;
-        }
-
-        .card h2 {
-            margin: 10px 0 0;
-            font-size: 30px;
-        }
-
-        /* NHẬN XÉT CƠ BẢN */
-
-        .ai-summary {
-            background: white;
-            padding: 25px;
-            border-radius: 14px;
-            margin-bottom: 25px;
-            border-left: 5px solid #7c3aed;
-        }
-
-        .ai-summary h2 {
-            margin-top: 0;
-        }
-
-        /* GEMINI AI */
-
-        .ai-result {
-            background: white;
-            padding: 25px;
-            border-radius: 14px;
-            margin-bottom: 25px;
-            border-left: 5px solid #2563eb;
-            box-shadow:
-                0 4px 15px rgba(0,0,0,0.06);
-        }
-
-        .ai-result h2 {
-            margin-top: 0;
-            margin-bottom: 18px;
-            color: #2563eb;
-        }
-
-        .ai-content {
-            background: #f5f3ff;
-            border-radius: 12px;
-            padding: 20px;
-            color: #374151;
-            line-height: 1.8;
-            font-size: 16px;
-            white-space: pre-line;
-        }
-
-        .ai-label {
-            display: inline-block;
-            background: #ede9fe;
-            color: #6d28d9;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        /* FEEDBACK */
-
-        .feedback {
-            background: white;
-            padding: 25px;
-            border-radius: 14px;
-        }
-
-        .feedback-item {
-            padding: 18px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .feedback-item:last-child {
-            border-bottom: none;
-        }
-
-        .food {
-            font-weight: bold;
-            color: #2563eb;
-        }
-
-        .rating {
-            margin: 6px 0;
-        }
-
-        .comment {
-            color: #475569;
-        }
-
-        /* RESPONSIVE */
-
-        @media (max-width: 800px) {
-
-            .stats {
-                grid-template-columns:
-                    repeat(2, 1fr);
-            }
-
-        }
-
-        @media (max-width: 500px) {
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 15px;
-            }
-
-            .ai-content {
-                font-size: 14px;
-                padding: 15px;
-            }
-
-        }
-
-    </style>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tổng hợp phản hồi - Smart Canteen AI</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
-
 <body>
 
-<div class="container">
+<div class="layout">
 
-    <!-- HEADER -->
-
-    <div class="header">
-
-        <h1>
-            🤖 AI Tổng hợp phản hồi khách hàng
-        </h1>
-
-        <p>
-            Phân tích đánh giá và nhận xét về món ăn
-        </p>
-
-        <div style="margin-top: 18px; display: flex; gap: 12px;">
-            <a
-                href="/ai-chat"
-                class="back"
-                style="margin-top: 0;"
-            >
-                💬 Trợ lý AI
-            </a>
-            <a
-                href="/dashboard"
-                class="back"
-                style="margin-top: 0;"
-            >
-                ← Quay lại Dashboard
-            </a>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>SMART</h2>
+            <span>CANTEEN</span>
+            <div class="ai-badge">AI Assistant</div>
         </div>
 
-    </div>
+        <nav>
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/foods">🍜 Món ăn</a>
+            <a href="/ingredients">📦 Nguyên liệu</a>
+            <a href="/suppliers">🚚 Nhà cung cấp</a>
+            <a href="/sales">💰 Bán hàng</a>
+            <a href="/feedback">💬 Phản hồi</a>
+            <a href="/reports">📈 Báo cáo</a>
+            <a href="/ai-recommend">🤖 AI Đề xuất thực đơn</a>
+            <a href="/ai-feedback" class="active">🧠 AI Tổng hợp phản hồi</a>
+            <a href="/ai-report">📊 AI Báo cáo doanh thu</a>
+            <a href="/ai-chat">💬 Trợ lý AI Căng tin</a>
+        </nav>
 
-
-    <!-- THỐNG KÊ -->
-
-    <div class="stats">
-
-        <div class="card">
-
-            <p>
-                Tổng phản hồi
-            </p>
-
-            <h2>
-                {{ total }}
-            </h2>
-
+        <div class="logout">
+            <a href="/logout">🚪 Đăng xuất</a>
         </div>
+    </aside>
 
+    <!-- MAIN -->
+    <main class="main">
 
-        <div class="card">
-
-            <p>
-                👍 Tích cực
-            </p>
-
-            <h2>
-                {{ positive }}
-            </h2>
-
-        </div>
-
-
-        <div class="card">
-
-            <p>
-                😐 Trung lập
-            </p>
-
-            <h2>
-                {{ neutral }}
-            </h2>
-
-        </div>
-
-
-        <div class="card">
-
-            <p>
-                ⭐ Điểm trung bình
-            </p>
-
-            <h2>
-                {{ "%.1f"|format(average_rating) }}/5
-            </h2>
-
-        </div>
-
-    </div>
-
-
-    <!-- NHẬN XÉT CƠ BẢN -->
-
-    <div class="ai-summary">
-
-        <h2>
-            🧠 Tổng quan phản hồi
-        </h2>
-
-        <p>
-            {{ summary }}
-        </p>
-
-        <p>
-
-            <strong>
-                Phản hồi chưa tích cực:
-            </strong>
-
-            {{ negative }}
-
-        </p>
-
-    </div>
-
-
-    <!-- GEMINI AI -->
-
-    <div class="ai-result">
-
-        <span class="ai-label">
-            GEMINI AI
-        </span>
-
-        <h2>
-            🤖 Phân tích chuyên sâu từ Gemini
-        </h2>
-
-        <div class="ai-content">
-
-            {{ ai_text }}
-
-        </div>
-
-    </div>
-
-
-    <!-- DANH SÁCH PHẢN HỒI -->
-
-    <div class="feedback">
-
-        <h2>
-            💬 Danh sách phản hồi
-        </h2>
-
-
-        {% for feedback in feedbacks %}
-
-        <div class="feedback-item">
-
-            <div class="food">
-
-                🍜
-                {{ feedback["food_name"] or "Không xác định" }}
-
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div>
+                <h1>AI Tổng hợp phản hồi</h1>
+                <p>Phân tích cảm xúc thực khách & Đề xuất cải thiện chất lượng phục vụ</p>
             </div>
 
+            <div class="topbar-right">
+                <a href="/feedback" class="quick-action-btn qa-primary" style="box-shadow: none;">
+                    <span>✍️</span>
+                    <span>Thêm phản hồi mới</span>
+                </a>
+                <div class="user">
+                    <span>👤</span>
+                    <span>Quản trị viên</span>
+                </div>
+            </div>
+        </header>
 
-            <div class="rating">
-
-                ⭐
-                {{ feedback["rating"] }}/5
-
+        <!-- 4 STAT CARDS -->
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    💬
+                </div>
+                <div>
+                    <p>Tổng phản hồi</p>
+                    <h2>{{ total }}</h2>
+                    <span class="stat-badge">Lượt đánh giá</span>
+                </div>
             </div>
 
-
-            <div class="comment">
-
-                {{ feedback["comment"] or "Không có nội dung" }}
-
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    👍
+                </div>
+                <div>
+                    <p>Phản hồi tích cực</p>
+                    <h2>{{ positive }}</h2>
+                    <span class="stat-badge">Hài lòng (4-5 ⭐)</span>
+                </div>
             </div>
 
-        </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    😐
+                </div>
+                <div>
+                    <p>Đánh giá trung lập</p>
+                    <h2>{{ neutral }}</h2>
+                    <span class="stat-badge">Mức độ 3 ⭐</span>
+                </div>
+            </div>
 
-        {% else %}
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    ⭐
+                </div>
+                <div>
+                    <p>Điểm trung bình</p>
+                    <h2>{{ "%.1f"|format(average_rating) }}/5</h2>
+                    <span class="stat-badge">Chỉ số hài lòng</span>
+                </div>
+            </div>
+        </section>
 
-        <p>
-            Chưa có phản hồi nào.
-        </p>
+        <!-- AI DEEP ANALYSIS -->
+        <section class="panel ai-panel" style="margin-bottom: 24px;">
+            <div class="panel-header">
+                <div>
+                    <h2>✨ Đánh giá chuyên sâu từ Gemini AI</h2>
+                    <p>Mô hình AI đọc hiểu toàn bộ nhận xét và tổng hợp khuyến nghị cho nhà bếp</p>
+                </div>
+                <a href="/ai-chat">Hỏi chi tiết Trợ lý AI 💬</a>
+            </div>
 
-        {% endfor %}
+            <div class="ai-result-box" style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); color: #f8fafc;">
+                {{ ai_text }}
+            </div>
+        </section>
 
-    </div>
+        <!-- TỔNG QUAN VÀ CHI TIẾT ĐÁNH GIÁ -->
+        <section class="dashboard-grid">
+
+            <!-- TỔNG QUAN BẢN TÓM TẮT -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>🧠 Báo cáo tâm lý thực khách</h2>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; line-height: 1.7; color: #334155;">
+                    <p style="font-size: 15px; margin-bottom: 14px;">
+                        {{ summary }}
+                    </p>
+                    <div style="padding-top: 12px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 700; color: #64748b;">Số phản hồi chưa tích cực (1-2 ⭐):</span>
+                        <span class="badge {% if negative > 0 %}badge-danger{% else %}badge-success{% endif %}">
+                            {{ negative }} phản hồi
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANH SÁCH ĐÁNH GIÁ GẦN ĐÂY -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>💬 Đánh giá gần đây</h2>
+                    <a href="/feedback">Xem tất cả →</a>
+                </div>
+
+                {% if feedbacks and feedbacks|length > 0 %}
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    {% for item in feedbacks[:5] %}
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="color: #0f172a;">🍜 {{ item["food_name"] or "Món ăn" }}</strong>
+                            <span class="stars">
+                                {% for i in range(item["rating"]) %}⭐{% endfor %}
+                            </span>
+                        </div>
+                        <p style="margin: 0; font-size: 13.5px; color: #475569; line-height: 1.5;">
+                            "{{ item["comment"] or "Không có nhận xét chi tiết" }}"
+                        </p>
+                        <small style="color: #94a3b8; display: block; margin-top: 6px;">
+                            {{ item["created_at"] }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <span class="empty-state-icon">💬</span>
+                    <h4>Chưa có phản hồi nào</h4>
+                    <p>Khách hàng gửi nhận xét sẽ được hiển thị và phân tích tại đây.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </section>
+
+    </main>
 
 </div>
 
 </body>
-
 </html>

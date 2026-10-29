@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Thêm món ăn - Smart Canteen</title>
-
+    <title>Thêm món ăn - Smart Canteen AI</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
-
 <body>
 
 <div class="layout">
 
     <aside class="sidebar">
-
         <div class="logo">
             <h2>SMART</h2>
             <span>CANTEEN</span>
+            <div class="ai-badge">AI Assistant</div>
         </div>
 
         <nav>
@@ -29,89 +25,99 @@
             <a href="/sales">💰 Bán hàng</a>
             <a href="/feedback">💬 Phản hồi</a>
             <a href="/reports">📈 Báo cáo</a>
+            <a href="/ai-recommend">🤖 AI Đề xuất thực đơn</a>
+            <a href="/ai-feedback">🧠 AI Tổng hợp phản hồi</a>
+            <a href="/ai-report">📊 AI Báo cáo doanh thu</a>
+            <a href="/ai-chat">💬 Trợ lý AI Căng tin</a>
         </nav>
 
         <div class="logout">
-            <a href="/">🚪 Đăng xuất</a>
+            <a href="/logout">🚪 Đăng xuất</a>
         </div>
-
     </aside>
 
     <main class="main">
 
         <header class="topbar">
-
             <div>
-                <h1>Thêm món ăn</h1>
-                <p>Thêm món ăn mới vào căng tin</p>
+                <h1>Thêm món ăn mới</h1>
+                <p>Bổ sung món ngon vào thực đơn căng tin</p>
             </div>
 
-            <div class="user">
-                👤 Quản trị viên
+            <div class="topbar-right">
+                <a href="/foods" class="quick-action-btn qa-indigo" style="box-shadow: none;">
+                    <span>←</span>
+                    <span>Quay lại danh sách</span>
+                </a>
+                <div class="user">
+                    <span>👤</span>
+                    <span>Quản trị viên</span>
+                </div>
             </div>
-
         </header>
 
-        <section class="panel">
-
+        <section class="panel" style="max-width: 800px;">
             <div class="panel-header">
-                <h2>Thông tin món ăn</h2>
+                <h2>🍜 Thông tin chi tiết món ăn</h2>
             </div>
 
-            <form method="POST" action="/foods/add">
+            <form method="POST" action="/foods/add" class="form-card" style="background: white; border: none; padding: 0;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="form-group">
+                        <label>Tên món ăn *</label>
+                        <input
+                            type="text"
+                            name="name"
+                            placeholder="Ví dụ: Cơm gà sốt nấm, Phở bò đặc biệt..."
+                            required
+                        >
+                    </div>
 
-                <p>
-                    <label>Tên món ăn</label><br>
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="Ví dụ: Cơm gà"
-                        required
-                    >
-                </p>
+                    <div class="form-group">
+                        <label>Loại / Danh mục món *</label>
+                        <input
+                            type="text"
+                            name="category"
+                            placeholder="Ví dụ: Cơm, Món nước, Mì, Đồ uống..."
+                            required
+                        >
+                    </div>
 
-                <p>
-                    <label>Loại món</label><br>
-                    <input
-                        type="text"
-                        name="category"
-                        placeholder="Ví dụ: Cơm"
-                        required
-                    >
-                </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Đơn giá bán (VNĐ) *</label>
+                            <input
+                                type="number"
+                                name="price"
+                                min="0"
+                                placeholder="Ví dụ: 35000"
+                                required
+                            >
+                        </div>
 
-                <p>
-                    <label>Giá bán</label><br>
-                    <input
-                        type="number"
-                        name="price"
-                        min="0"
-                        placeholder="Ví dụ: 30000"
-                        required
-                    >
-                </p>
+                        <div class="form-group">
+                            <label>Số lượng phục vụ sẵn sàng *</label>
+                            <input
+                                type="number"
+                                name="quantity"
+                                min="0"
+                                value="0"
+                                placeholder="Ví dụ: 50"
+                                required
+                            >
+                        </div>
+                    </div>
 
-                <p>
-                    <label>Số lượng</label><br>
-                    <input
-                        type="number"
-                        name="quantity"
-                        min="0"
-                        value="0"
-                        required
-                    >
-                </p>
-
-                <button type="submit">
-                    💾 Lưu món ăn
-                </button>
-
-                <a href="/foods">
-                    ← Quay lại
-                </a>
-
+                    <div style="display: flex; gap: 12px; margin-top: 10px;">
+                        <button type="submit" class="add-btn">
+                            💾 Lưu món ăn
+                        </button>
+                        <a href="/foods" class="delete-btn" style="background: #f1f5f9; color: #475569; padding: 12px 20px; border-radius: 10px; font-weight: 700; text-decoration: none;">
+                            Hủy bỏ
+                        </a>
+                    </div>
+                </div>
             </form>
-
         </section>
 
     </main>
@@ -119,5 +125,4 @@
 </div>
 
 </body>
-
 </html>

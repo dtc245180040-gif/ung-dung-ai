@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sửa nhà cung cấp</title>
+    <title>Sửa nhà cung cấp - Smart Canteen AI</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
-
 <body>
 
 <div class="layout">
 
     <aside class="sidebar">
-
         <div class="logo">
             <h2>SMART</h2>
             <span>CANTEEN</span>
+            <div class="ai-badge">AI Assistant</div>
         </div>
 
         <nav>
@@ -26,76 +25,84 @@
             <a href="/sales">💰 Bán hàng</a>
             <a href="/feedback">💬 Phản hồi</a>
             <a href="/reports">📈 Báo cáo</a>
+            <a href="/ai-recommend">🤖 AI Đề xuất thực đơn</a>
+            <a href="/ai-feedback">🧠 AI Tổng hợp phản hồi</a>
+            <a href="/ai-report">📊 AI Báo cáo doanh thu</a>
+            <a href="/ai-chat">💬 Trợ lý AI Căng tin</a>
         </nav>
 
+        <div class="logout">
+            <a href="/logout">🚪 Đăng xuất</a>
+        </div>
     </aside>
 
     <main class="main">
 
         <header class="topbar">
-
             <div>
-                <h1>Sửa nhà cung cấp</h1>
-                <p>Cập nhật thông tin nhà cung cấp</p>
+                <h1>Cập nhật nhà cung cấp</h1>
+                <p>Điều chỉnh thông tin đối tác cung ứng nguyên liệu</p>
             </div>
 
-            <div class="user">
-                👤 Quản trị viên
+            <div class="topbar-right">
+                <a href="/suppliers" class="quick-action-btn qa-indigo" style="box-shadow: none;">
+                    <span>←</span>
+                    <span>Quay lại danh sách</span>
+                </a>
+                <div class="user">
+                    <span>👤</span>
+                    <span>Quản trị viên</span>
+                </div>
             </div>
-
         </header>
 
-        <section class="panel">
-
+        <section class="panel" style="max-width: 800px;">
             <div class="panel-header">
-                <h2>Thông tin nhà cung cấp</h2>
+                <h2>✏️ Chỉnh sửa: {{ supplier['name'] }}</h2>
             </div>
 
-            <form method="POST">
+            <form method="POST" class="form-card" style="background: white; border: none; padding: 0;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="form-group">
+                        <label>Tên nhà cung cấp *</label>
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ supplier['name'] }}"
+                            required
+                        >
+                    </div>
 
-                <p>
-                    <label>Tên nhà cung cấp</label><br>
+                    <div class="form-group">
+                        <label>Số điện thoại liên hệ</label>
+                        <input
+                            type="text"
+                            name="phone"
+                            value="{{ supplier['phone'] or '' }}"
+                            placeholder="Số điện thoại"
+                        >
+                    </div>
 
-                    <input
-                        type="text"
-                        name="name"
-                        value="{{ supplier['name'] }}"
-                        required
-                    >
-                </p>
+                    <div class="form-group">
+                        <label>Địa chỉ văn phòng / kho hàng</label>
+                        <input
+                            type="text"
+                            name="address"
+                            value="{{ supplier['address'] or '' }}"
+                            placeholder="Địa chỉ chi tiết"
+                        >
+                    </div>
 
-                <p>
-                    <label>Số điện thoại</label><br>
-
-                    <input
-                        type="text"
-                        name="phone"
-                        value="{{ supplier['phone'] or '' }}"
-                    >
-                </p>
-
-                <p>
-                    <label>Địa chỉ</label><br>
-
-                    <input
-                        type="text"
-                        name="address"
-                        value="{{ supplier['address'] or '' }}"
-                    >
-                </p>
-
-                <button type="submit" class="add-btn">
-                    💾 Lưu thay đổi
-                </button>
-
-                <a href="/suppliers">
-                    <button type="button">
-                        ← Quay lại
-                    </button>
-                </a>
-
+                    <div style="display: flex; gap: 12px; margin-top: 10px;">
+                        <button type="submit" class="add-btn">
+                            💾 Lưu thay đổi
+                        </button>
+                        <a href="/suppliers" class="delete-btn" style="background: #f1f5f9; color: #475569; padding: 12px 20px; border-radius: 10px; font-weight: 700; text-decoration: none;">
+                            Hủy bỏ
+                        </a>
+                    </div>
+                </div>
             </form>
-
         </section>
 
     </main>

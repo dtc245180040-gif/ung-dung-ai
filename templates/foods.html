@@ -1,279 +1,157 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Quản lý món ăn - Smart Canteen</title>
-
+    <title>Quản lý món ăn - Smart Canteen AI</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
-
 <body>
 
 <div class="layout">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <div class="logo">
             <h2>SMART</h2>
             <span>CANTEEN</span>
+            <div class="ai-badge">AI Assistant</div>
         </div>
 
         <nav>
             <a href="/dashboard">📊 Dashboard</a>
-
-            <a href="/foods" class="active">
-                🍜 Món ăn
-            </a>
-
-            <a href="/ingredients">
-                📦 Nguyên liệu
-            </a>
-
-            <a href="/suppliers">
-                🚚 Nhà cung cấp
-            </a>
-
-            <a href="/sales">
-                💰 Bán hàng
-            </a>
-
-            <a href="/feedback">
-                💬 Phản hồi
-            </a>
-
-            <a href="/reports">
-                📈 Báo cáo
-            </a>
-
-            <a href="/ai-recommend">
-                🤖 AI Đề xuất thực đơn
-            </a>
-
-            <a href="/ai-feedback">
-                🧠 AI Tổng hợp phản hồi
-            </a>
-
-            <a href="/ai-report">
-                📊 AI Báo cáo doanh thu
-            </a>
-
-            <a href="/ai-chat">
-                💬 Trợ lý AI Căng tin
-            </a>
+            <a href="/foods" class="active">🍜 Món ăn</a>
+            <a href="/ingredients">📦 Nguyên liệu</a>
+            <a href="/suppliers">🚚 Nhà cung cấp</a>
+            <a href="/sales">💰 Bán hàng</a>
+            <a href="/feedback">💬 Phản hồi</a>
+            <a href="/reports">📈 Báo cáo</a>
+            <a href="/ai-recommend">🤖 AI Đề xuất thực đơn</a>
+            <a href="/ai-feedback">🧠 AI Tổng hợp phản hồi</a>
+            <a href="/ai-report">📊 AI Báo cáo doanh thu</a>
+            <a href="/ai-chat">💬 Trợ lý AI Căng tin</a>
         </nav>
 
         <div class="logout">
-            <a href="/">
-                🚪 Đăng xuất
-            </a>
+            <a href="/logout">🚪 Đăng xuất</a>
         </div>
-
     </aside>
 
-
-    <!-- MAIN CONTENT -->
+    <!-- MAIN -->
     <main class="main">
 
         <!-- TOPBAR -->
         <header class="topbar">
-
             <div>
                 <h1>Quản lý món ăn</h1>
-
-                <p>
-                    Quản lý danh sách món ăn trong căng tin
-                </p>
+                <p>Danh mục thực đơn, đơn giá & tình trạng phục vụ</p>
             </div>
 
-            <div class="user">
-                👤
+            <div class="topbar-right">
                 {% if role == "admin" %}
-                    Quản trị viên
-                {% else %}
-                    Nhân viên
+                <a href="/foods/add" class="add-btn">
+                    ➕ Thêm món mới
+                </a>
                 {% endif %}
+                <div class="user">
+                    <span>👤</span>
+                    <span>{% if role == "admin" %}Quản trị viên{% else %}Nhân viên{% endif %}</span>
+                </div>
             </div>
-
         </header>
 
-
-        <!-- CONTENT -->
+        <!-- PANEL -->
         <section class="panel">
 
-            <!-- PANEL HEADER -->
+            <!-- HEADER -->
             <div class="panel-header">
-
-                <h2>
-                    Danh sách món ăn
-                </h2>
-
-                {% if role == "admin" %}
-    <a href="/foods/add">
-        ➕ Thêm món ăn
-    </a>
-{% endif %}
-
+                <h2>🍜 Danh sách món ăn trong căng tin</h2>
+                <a href="/sales">Tới quầy bán hàng →</a>
             </div>
 
-
             <!-- SEARCH -->
-            <form
-                method="GET"
-                action="/foods"
-                class="search-box"
-            >
-
+            <form method="GET" action="/foods" class="search-box">
                 <input
                     type="text"
                     name="keyword"
-                    placeholder="🔍 Tìm kiếm món ăn..."
+                    placeholder="🔍 Tìm kiếm món ăn theo tên hoặc danh mục..."
                     value="{{ keyword }}"
                 >
-
-                <button type="submit">
-                    Tìm kiếm
-                </button>
-
+                <button type="submit">Tìm kiếm</button>
             </form>
-
 
             <!-- FOOD TABLE -->
             <table>
-
                 <thead>
-
                     <tr>
-
-                        <th>ID</th>
-
-                        <th>Tên món</th>
-
-                        <th>Loại</th>
-
-                        <th>Giá</th>
-
-                        <th>Số lượng</th>
-
-                        <th>Trạng thái</th>
-
-                        <th>Thao tác</th>
-
+                        <th style="width: 70px;">ID</th>
+                        <th>Tên món ăn</th>
+                        <th style="width: 140px;">Danh mục</th>
+                        <th style="width: 140px;">Đơn giá</th>
+                        <th style="width: 130px; text-align: center;">Tồn khả dụng</th>
+                        <th style="width: 130px;">Trạng thái</th>
+                        <th style="width: 110px; text-align: center;">Thao tác</th>
                     </tr>
-
                 </thead>
-
-
                 <tbody>
-
                     {% for food in foods %}
-
                     <tr>
-
-                        <!-- ID -->
+                        <td><strong>#{{ food["id"] }}</strong></td>
                         <td>
-                            {{ food["id"] }}
+                            <strong style="color: #0f172a; font-size: 15px;">🍜 {{ food["name"] }}</strong>
                         </td>
-
-
-                        <!-- NAME -->
                         <td>
-                            🍜 {{ food["name"] }}
+                            <span class="badge-blue">{{ food["category"] }}</span>
                         </td>
-
-
-                        <!-- CATEGORY -->
                         <td>
-                            {{ food["category"] }}
+                            <strong style="color: #059669; font-size: 15px;">
+                                {{ "{:,.0f}".format(food["price"]) }}đ
+                            </strong>
                         </td>
-
-
-                        <!-- PRICE -->
-                        <td>
-                            {{ "{:,.0f}".format(food["price"]) }}đ
-                        </td>
-
-
-                        <!-- QUANTITY -->
-                        <td>
-                            {{ food["quantity"] }}
-                        </td>
-
-
-                        <!-- STATUS -->
-                        <td>
-
-                            <span class="status-active">
-                                {{ food["status"] }}
+                        <td style="text-align: center;">
+                            <span class="badge {% if food['quantity'] > 10 %}badge-success{% elif food['quantity'] > 0 %}badge-warning{% else %}badge-danger{% endif %}">
+                                {{ food["quantity"] }} suất
                             </span>
-
                         </td>
-
-
-                        <!-- ACTION -->
                         <td>
-
-                            {% if role == "admin" %}
-
-                                <!-- EDIT -->
-                                <a
-                                    href="/foods/edit/{{ food['id'] }}"
-                                    class="edit-btn"
-                                >
-                                    ✏️
-                                </a>
-
-
-                                <!-- DELETE -->
-                                <form
-                                    method="POST"
-                                    action="/foods/delete/{{ food['id'] }}"
-                                    style="display:inline;"
-                                    onsubmit="return confirm('Bạn có chắc muốn xóa món này?');"
-                                >
-
-                                    <button
-                                        type="submit"
-                                        class="delete-btn"
-                                    >
-                                        🗑️
-                                    </button>
-
-                                </form>
-
+                            {% if food["quantity"] > 0 %}
+                                <span class="badge-success">{{ food["status"] or "Đang bán" }}</span>
                             {% else %}
-
-                                <span>
-                                    Chỉ xem
-                                </span>
-
+                                <span class="badge-danger">Tạm hết hàng</span>
                             {% endif %}
-
                         </td>
-
+                        <td style="text-align: center;">
+                            {% if role == "admin" %}
+                            <a href="/foods/edit/{{ food['id'] }}" class="edit-btn" title="Chỉnh sửa món">
+                                ✏️
+                            </a>
+                            <form
+                                method="POST"
+                                action="/foods/delete/{{ food['id'] }}"
+                                style="display:inline;"
+                                onsubmit="return confirm('Bạn có chắc muốn xóa món này?');"
+                            >
+                                <button type="submit" class="delete-btn" title="Xóa món">
+                                    🗑️
+                                </button>
+                            </form>
+                            {% else %}
+                            <span style="font-size: 12px; color: #94a3b8;">Chỉ xem</span>
+                            {% endif %}
+                        </td>
                     </tr>
-
                     {% else %}
-
-                    <!-- NO DATA -->
                     <tr>
-
-                        <td
-                            colspan="7"
-                            style="text-align:center;"
-                        >
-                            Không tìm thấy món ăn.
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <span class="empty-state-icon">🍜</span>
+                                <h4>Không tìm thấy món ăn nào</h4>
+                                <p>Hãy thử tìm kiếm với từ khóa khác hoặc bấm nút "+ Thêm món mới" bên trên.</p>
+                            </div>
                         </td>
-
                     </tr>
-
                     {% endfor %}
-
                 </tbody>
-
             </table>
 
         </section>
@@ -283,5 +161,4 @@
 </div>
 
 </body>
-
 </html>
